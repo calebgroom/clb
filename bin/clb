@@ -1,0 +1,284 @@
+#!/usr/bin/env python
+import cloudlb
+import argparse
+import os
+import prettytable
+import sys
+import textwrap
+
+# Decorator for args
+def arg(*args, **kwargs):
+    def _decorator(func):
+        # Because of the sematics of decorator composition if we just append
+        # to the options list positional options will appear to be backwards.
+        func.__dict__.setdefault('arguments', []).insert(0, (args, kwargs))
+        return func
+    return _decorator
+
+class CommandError(Exception):
+    pass
+
+def env(e):
+    return os.environ.get(e, '')
+
+class CloudloadbalancersShell(object):
+
+    # Hook for the test suite to inject a fake load balancer.
+    _api_class = cloudlb.CloudLoadBalancer
+
+    def __init__(self):
+        self.parser = argparse.ArgumentParser(
+            prog = 'clb',
+            #description = __doc__.strip(),
+            epilog = 'See "clb help COMMAND" for help on a specific command.',
+            add_help = False,
+            formatter_class = CloudloadbalancersHelpFormatter,
+        )
+
+        # Global arguments
+        self.parser.add_argument('-h', '--help',
+            action = 'help',
+            help = argparse.SUPPRESS)
+
+        self.parser.add_argument('--debug',
+            default = False,
+            action = 'store_true',
+            help = argparse.SUPPRESS)
+
+        self.parser.add_argument('--username',
+            default = env('CLOUD_LOADBALANCERS_USERNAME') or env('CLOUD_SERVERS_USERNAME'),
+            help = 'Defaults to env[CLOUD_LOADBALANCERS_USERNAME] or env[CLOUD_SERVERS_USERNAME].')
+            
+        self.parser.add_argument('--apikey',
+            default = env('CLOUD_LOADBALANCERS_API_KEY') or env('CLOUD_SERVERS_API_KEY'),
+            help='Defaults to env[CLOUD_LOADBALANCERS_API_KEY] env[CLOUD_SERVERS_API_KEY].')
+
+        self.parser.add_argument('--region',
+            default = env('CLOUD_LOADBALANCERS_REGION'),
+            help='Defaults to env[CLOUD_LOADBALANCERS_REGION].')
+
+        # Subcommands
+        subparsers = self.parser.add_subparsers(metavar='<subcommand>')
+        self.subcommands = {}
+
+        # Everything that's do_* is a subcommand.
+        for attr in (a for a in dir(self) if a.startswith('do_')):
+            # I prefer to be hypen-separated instead of underscores.
+            command = attr[3:].replace('_', '-')
+            callback = getattr(self, attr)
+            desc = callback.__doc__ or ''
+            help = desc.strip().split('\n')[0]
+            arguments = getattr(callback, 'arguments', [])
+            
+            subparser = subparsers.add_parser(command,
+                help = help,
+                description = desc,
+                add_help=False,
+                formatter_class = CloudloadbalancersHelpFormatter
+            )
+            subparser.add_argument('-h', '--help',
+                action = 'help',
+                help = argparse.SUPPRESS,
+            )
+            self.subcommands[command] = subparser
+            for (args, kwargs) in arguments:
+                subparser.add_argument(*args, **kwargs)
+            subparser.set_defaults(func=callback)
+
+    def main(self, argv):
+        # Parse args and call whatever callback was selected
+        args = self.parser.parse_args(argv)
+
+        # Short-circuit and deal with help right away.
+        if args.func == self.do_help:
+            self.do_help(args)
+            return 0
+                
+        # Deal with global arguments
+        if args.debug:
+            httplib2.debuglevel = 1
+     
+        user, apikey, region  = args.username, args.apikey, args.region
+ 
+        if not user:
+            raise CommandError("You must provide a username, either via "
+                               "--username or via env[CLOUD_SERVERS_USERNAME]")
+        if not apikey:
+            raise CommandError("You must provide an API key, either via "
+                               "--apikey or via env[CLOUD_SERVERS_API_KEY]")
+
+        if not region:
+            raise CommandError("You must provide a region location, either via "
+                               "--region or via env[CLOUD_LOADBALANCERS_REGION]")
+
+        self.clb = self._api_class(user, apikey, region)
+
+        args.func(args)
+
+    @arg('command', metavar='<subcommand>', nargs='?', help='Display help for <subcommand>')
+    def do_help(self, args):
+        """
+        Display help about this program or one of its subcommands.
+        """
+        if args.command:
+            if args.command in self.subcommands:
+                self.subcommands[args.command].print_help()
+            else:
+                raise CommandError("'%s' is not a valid subcommand." % args.command)
+        else:
+            self.parser.print_help()
+
+    def do_list(self, args):
+        """List active load balancers."""
+        fields = ['Name', 'ID', 'Port', 'Protocol', 'Algorithm', 'Nodes', 'IPs']
+        rows = []
+        lbs = self.clb.loadbalancers.list()
+        for lb in lbs:
+            ips = []
+            for ip in lb.virtualIps:
+                ips.append("%s/%s" % (ip.ipVersion, ip.address))
+            rows.append([lb.name, lb.id, lb.port, lb.protocol, lb.algorithm, len(lb.nodes), csv_list(ips)])
+        print_list2(fields, rows)
+
+    def do_list_deleted(self, args):
+        """List deleted load balancers."""
+        fields = ['Name', 'ID']
+        rows = []
+        lbs = self.clb.loadbalancers.list_deleted()
+        for lb in lbs:
+            rows.append([lb.name, lb.id])
+        print_list2(fields, rows)
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    def do_show(self, args):
+        """List details of a specific load balancer."""
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        fields = ['Field', 'Value']
+        rows = []
+        rows.append(['Name', lb.name])
+        rows.append(['ID', lb.id])
+        rows.append(['Status', lb.status])
+        rows.append(['Port', lb.port])
+        rows.append(['Protocol', lb.protocol])
+        rows.append(['Algorithm', lb.algorithm])
+        for i in range(len(lb.virtualIps)):
+            ip = lb.virtualIps[i]
+            vstr = '%s (%s)' % (ip.address, ip.type)
+            rows.append(['VIP ' + str(ip.id), vstr])
+        for i in range(len(lb.nodes)):
+            node = lb.nodes[i]
+            nstr = '%s:%s / %s / %s' % (node.address, node.port, node.condition, node.status)
+            # TODO add node weight
+            rows.append(['Node ' + str(i), nstr])
+        sp = lb.session_persistence()
+        rows.append(['Session Persistence', sp.get()])
+        rows.append(['Connection Logging', lb.connection_logging().get()])
+        # TODO
+        # - ACL
+        # - Health Monitor
+        # - Usage Statistics
+        
+        rows.append(['Cluster', lb.cluster])
+        rows.append(['Created', lb.created])
+        rows.append(['Updated', lb.updated])
+ 
+        print_list2(fields, rows)
+
+    @arg('name', metavar='<name>', help='Name of load balancer.')
+    @arg('port', metavar='<port>', help='Load balancer port number.')
+    @arg('protocol', metavar='<protocol>', help='Load balancer protocol type.')
+    @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')
+    @arg('vip', metavar='<vip>', help='Virtual IP.  Either "PUBLIC", "SERVICENET", or ID of existing VIP to share.')
+    def do_create(self, args):
+        """Create new load balancer."""
+        nodes = split_nodes(args.nodes) 
+
+        if not args.vip in ["PUBLIC", "SERVICENET"]:
+            vip = cloudlb.VirtualIP(id=int(args.vip))
+        else:
+            vip = cloudlb.VirtualIP(type=args.vip)
+
+        self.clb.loadbalancers.create(name=args.name, port=args.port, 
+          protocol=args.protocol,nodes=nodes, virtualIps=[vip])
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')
+    def do_add_nodes(self, args):
+        """Add nodes to an existing load balancer."""
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        nodes = split_nodes(args.nodes)
+        lb.add_nodes(nodes)
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')
+    def do_remove_nodes(self, args):
+        """Remove nodes from an existing load balancer."""
+        node_strings = args.nodes.split(',')
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        for n in lb.nodes:
+            destination = "%s:%d" % (n.address, n.port)
+            if destination in node_strings:
+                n.delete()
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    def do_delete(self, args):
+        """Delete a load balancer"""
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb.delete()
+
+class CloudloadbalancersHelpFormatter(argparse.HelpFormatter):
+    def start_section(self, heading):
+        # Title-case the headings
+        heading = '%s%s' % (heading[0].upper(), heading[1:])
+        super(CloudloadbalancersHelpFormatter, self).start_section(heading)
+
+# Helper functions
+def split_nodes(node_string):
+    """Split CSV string in IP:Port format into a list of Cloudlb.Nodes """
+    nodes = []
+    for server in node_string.split(','):
+        (ip, port) = server.split(':')
+        node = cloudlb.Node(address=ip, port=port, condition='ENABLED')
+        nodes.append(node)
+    return nodes
+
+def csv_list(listtext, sep1=', ', sep2=', and '):
+        return (len(listtext) > 1 
+        and ("%s%s%s" % (sep1.join(listtext[:-1]), sep2, listtext[-1])) 
+        or listtext[0])
+
+def print_list2(fields, rows):
+    pt = prettytable.PrettyTable(fields)
+    pt.aligns = ['l' for f in fields]
+    for r in rows:
+        pt.add_row(r)
+    #pt.printt(sortby=fields[0])
+    pt.printt()
+
+def print_list(objs, fields, formatters={}):
+    pt = prettytable.PrettyTable([f for f in fields], caching=False)
+    pt.aligns = ['l' for f in fields]
+    
+    for o in objs:
+        row = []
+        for field in fields:
+            if field in formatters:
+                row.append(formatters[field](o))
+            else:
+                row.append(getattr(o, field.lower().replace(' ', '_'), ''))
+        pt.add_row(row)
+    
+    pt.printt(sortby=fields[0])
+    
+def print_dict(d):
+    pt = prettytable.PrettyTable(['Property', 'Value'], caching=False)
+    pt.aligns = ['l', 'l']
+    [pt.add_row(list(r)) for r in d.iteritems()]
+    pt.printt(sortby='Property')
+
+if __name__ == "__main__":
+    try:
+        CloudloadbalancersShell().main(sys.argv[1:])
+    except CommandError, e:
+        print >> sys.stderr, e
+        sys.exit(1)
