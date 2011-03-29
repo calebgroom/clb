@@ -204,6 +204,7 @@ class CloudloadbalancersShell(object):
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     @arg('name', metavar='<name>', help="New load balancer name.")
     def do_rename(self,args):
+        """Rename an existing load balancer."""
         lb = self.clb.loadbalancers.find(name=args.loadbalancer)
         lb.name = args.name
         lb.update()
