@@ -51,11 +51,11 @@ List deleted load balancers::
 
 List load balancer details::
 
-  $ clb show lb-share
+  $ clb show mylb
   +---------------------+----------------------------------+
   |        Field        |              Value               |
   +---------------------+----------------------------------+
-  | Name                | lb-share                         |
+  | Name                | mylb                             |
   | ID                  | 7364                             |
   | Status              | ACTIVE                           |
   | Port                | 81                               |
@@ -78,13 +78,17 @@ Delete load balancer::
 
  $ clb delete mylb
 
+Rename a load balancer::
+
+ $ clb rename mylb my_new_name
+
 Add nodes to a load balancer::
 
- $ clb add-nodes lb-share '10.8.8.8:8080,10.9.9.9:8080'
+ $ clb add-nodes mylb '10.8.8.8:8080,10.9.9.9:8080'
 
 Remove nodes from a load balancer::
 
- $ clb remove-nodes lb-share '10.8.8.8:8080,10.9.9.9:8080'
+ $ clb remove-nodes mylb '10.8.8.8:8080,10.9.9.9:8080'
 
 LICENSE
 =======
