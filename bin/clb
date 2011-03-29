@@ -202,6 +202,13 @@ class CloudloadbalancersShell(object):
           protocol=args.protocol,nodes=nodes, virtualIps=[vip])
 
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('name', metavar='<name>', help="New load balancer name.")
+    def do_rename(self,args):
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb.name = args.name
+        lb.update()
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')
     def do_add_nodes(self, args):
         """Add nodes to an existing load balancer."""
