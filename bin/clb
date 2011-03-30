@@ -128,6 +128,31 @@ class CloudloadbalancersShell(object):
         else:
             self.parser.print_help()
 
+    # Load balancer operations
+    @arg('name', metavar='<name>', help='Name of load balancer.')
+    @arg('port', metavar='<port>', help='Load balancer port number.')
+    @arg('protocol', metavar='<protocol>', help='Load balancer protocol type.')
+    @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')
+    @arg('vip', metavar='<vip>', help='Virtual IP.  Either "public", "servicenet", or ID of existing VIP to share.')
+    def do_create(self, args):
+        """Create new load balancer."""
+        nodes = split_nodes(args.nodes) 
+
+        if not args.vip in ["public", "servicenet"]:
+            vip = cloudlb.VirtualIP(id=int(args.vip))
+        else:
+            print "VIP type", args.vip.upper()
+            vip = cloudlb.VirtualIP(type=args.vip.upper())
+
+        self.clb.loadbalancers.create(name=args.name, port=args.port, 
+          protocol=args.protocol,nodes=nodes, virtualIps=[vip])
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    def do_delete(self, args):
+        """Delete a load balancer"""
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb.delete()
+
     def do_list(self, args):
         """List active load balancers."""
         fields = ['Name', 'ID', 'Port', 'Protocol', 'Algorithm', 'Nodes', 'IPs']
@@ -180,8 +205,51 @@ class CloudloadbalancersShell(object):
         print_list2(fields, rows)
         # TODO
         # - ACL
-        # - Health Monitor
 
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    def do_show_usage(self, args):
+        """Display load balancer usage.""" 
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        for u in lb.get_usage():
+            print_dict(u)
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('name', metavar='<name>', help="New load balancer name.")
+    def do_rename(self,args):
+        """Rename an existing load balancer."""
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb.name = args.name
+        lb.update()
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('protocol', metavar='<protocol>', help="New protocol.")
+    def do_change_protocol(self,args):
+        """Change the protocol of an existing load balancer."""
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb.protocol = args.protocol
+        lb.update()
+
+    # Node operations
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')
+    def do_add_nodes(self, args):
+        """Add nodes to an existing load balancer."""
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        nodes = split_nodes(args.nodes)
+        lb.add_nodes(nodes)
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')
+    def do_remove_nodes(self, args):
+        """Remove nodes from an existing load balancer."""
+        node_strings = args.nodes.split(',')
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        for n in lb.nodes:
+            destination = "%s:%d" % (n.address, n.port)
+            if destination in node_strings:
+                n.delete()
+
+    # Monitor operations
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     def do_show_monitor(self, args):
         """Display load balancer's monitor."""
@@ -204,55 +272,6 @@ class CloudloadbalancersShell(object):
                 rows.append(['Body Regex', m.bodyRegex])
 
             print_list2(fields, rows)
-
-    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
-    def do_show_usage(self, args):
-        """Display load balancer usage.""" 
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
-        for u in lb.get_usage():
-            print_dict(u)
-
-    @arg('name', metavar='<name>', help='Name of load balancer.')
-    @arg('port', metavar='<port>', help='Load balancer port number.')
-    @arg('protocol', metavar='<protocol>', help='Load balancer protocol type.')
-    @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')
-    @arg('vip', metavar='<vip>', help='Virtual IP.  Either "public", "servicenet", or ID of existing VIP to share.')
-    def do_create(self, args):
-        """Create new load balancer."""
-        nodes = split_nodes(args.nodes) 
-
-        if not args.vip in ["public", "servicenet"]:
-            vip = cloudlb.VirtualIP(id=int(args.vip))
-        else:
-            print "VIP type", args.vip.upper()
-            vip = cloudlb.VirtualIP(type=args.vip.upper())
-
-        self.clb.loadbalancers.create(name=args.name, port=args.port, 
-          protocol=args.protocol,nodes=nodes, virtualIps=[vip])
-
-    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
-    @arg('name', metavar='<name>', help="New load balancer name.")
-    def do_rename(self,args):
-        """Rename an existing load balancer."""
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
-        lb.name = args.name
-        lb.update()
-
-    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
-    @arg('protocol', metavar='<protocol>', help="New protocol.")
-    def do_change_protocol(self,args):
-        """Change the protocol of an existing load balancer."""
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
-        lb.protocol = args.protocol
-        lb.update()
-
-    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
-    @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')
-    def do_add_nodes(self, args):
-        """Add nodes to an existing load balancer."""
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
-        nodes = split_nodes(args.nodes)
-        lb.add_nodes(nodes)
 
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     @arg('delay', metavar='<delay>', help='The minimum number of seconds to wait before executing the health monitor.')
@@ -311,23 +330,7 @@ class CloudloadbalancersShell(object):
           bodyRegex=args.body)
         monitor.add(hm)
 
-    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
-    @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')
-    def do_remove_nodes(self, args):
-        """Remove nodes from an existing load balancer."""
-        node_strings = args.nodes.split(',')
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
-        for n in lb.nodes:
-            destination = "%s:%d" % (n.address, n.port)
-            if destination in node_strings:
-                n.delete()
-
-    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
-    def do_delete(self, args):
-        """Delete a load balancer"""
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
-        lb.delete()
-
+    # Load balancer features
     def do_list_algorithms(self, args):
         """List the available load balancing algorithms."""
         print_list2(['Algorithms'], self.clb.get_algorithms())
