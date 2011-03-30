@@ -197,6 +197,12 @@ class CloudloadbalancersShell(object):
             rows.append(['Delay', m.delay])
             rows.append(['Timeout', m.timeout])
             rows.append(['Attempts', m.attemptsBeforeDeactivation])
+
+            if m.type in ['HTTP', 'HTTPS']:
+                rows.append(['Path', m.path])
+                rows.append(['Status Regex', m.statusRegex])
+                rows.append(['Body Regex', m.bodyRegex])
+
             print_list2(fields, rows)
 
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
@@ -261,7 +267,49 @@ class CloudloadbalancersShell(object):
           timeout=int(args.timeout),
           attemptsBeforeDeactivation=int(args.attempts))
         monitor.add(hm)
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('delay', metavar='<delay>', help='The minimum number of seconds to wait before executing the health monitor.')
+    @arg('timeout', metavar='<timeout>', help='Maximum number of seconds to wait for a connection to be established before timing out.')
+    @arg('attempts', metavar='<attempts>', help='Number of permissible monitor failures before removing a node from rotation.')
+    @arg('path', metavar='<path>', help='The HTTP patch that will be used in the monitor request.')
+    @arg('status', metavar='<status>', help='A regular expression that will be used to evaluate the HTTP status code returned in the response.')
+    @arg('body', metavar='<body>', help='')
+    def do_set_monitor_http(self, args):
+        """Set the monitor to HTTP for an existing load balancer."""
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        monitor = lb.healthmonitor()
+        hm = cloudlb.healthmonitor.HealthMonitor(
+          type="HTTP",
+          delay=int(args.delay),
+          timeout=int(args.timeout),
+          attemptsBeforeDeactivation=int(args.attempts),
+          path=args.path,
+          statusRegex=args.status,
+          bodyRegex=args.body)
+        monitor.add(hm)
         
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('delay', metavar='<delay>', help='The minimum number of seconds to wait before executing the health monitor.')
+    @arg('timeout', metavar='<timeout>', help='Maximum number of seconds to wait for a connection to be established before timing out.')
+    @arg('attempts', metavar='<attempts>', help='Number of permissible monitor failures before removing a node from rotation.')
+    @arg('path', metavar='<path>', help='The HTTP patch that will be used in the monitor request.')
+    @arg('status', metavar='<status>', help='A regular expression that will be used to evaluate the HTTP status code returned in the response.')
+    @arg('body', metavar='<body>', help='')
+    def do_set_monitor_https(self, args):
+        """Set the monitor to HTTPS for an existing load balancer."""
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        monitor = lb.healthmonitor()
+        hm = cloudlb.healthmonitor.HealthMonitor(
+          type="HTTPS",
+          delay=int(args.delay),
+          timeout=int(args.timeout),
+          attemptsBeforeDeactivation=int(args.attempts),
+          path=args.path,
+          statusRegex=args.status,
+          bodyRegex=args.body)
+        monitor.add(hm)
+
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')
     def do_remove_nodes(self, args):
