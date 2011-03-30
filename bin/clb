@@ -173,16 +173,21 @@ class CloudloadbalancersShell(object):
         sp = lb.session_persistence()
         rows.append(['Session Persistence', sp.get()])
         rows.append(['Connection Logging', lb.connection_logging().get()])
-        # TODO
-        # - ACL
-        # - Health Monitor
-        # - Usage Statistics
-        
         rows.append(['Cluster', lb.cluster])
         rows.append(['Created', lb.created])
         rows.append(['Updated', lb.updated])
  
         print_list2(fields, rows)
+        # TODO
+        # - ACL
+        # - Health Monitor
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    def do_show_usage(self, args):
+        """Display load balancer usage.""" 
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        for u in lb.get_usage():
+            print_dict(u)
 
     @arg('name', metavar='<name>', help='Name of load balancer.')
     @arg('port', metavar='<port>', help='Load balancer port number.')

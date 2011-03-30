@@ -74,6 +74,35 @@ List load balancer details::
   | Updated             | 2011-03-28 21:15:07              |
   +---------------------+----------------------------------+
 
+List load balancer usage::
+
+ $ clb show-usage mylb
+ +-----------------------+---------------------+
+ |        Property       |        Value        |
+ +-----------------------+---------------------+
+ | averageNumConnections | 0.0                 |
+ | endTime               | 2011-03-29 04:58:44 |
+ | eventType             | CREATE_LOADBALANCER |
+ | id                    | 30444               |
+ | incomingTransfer      | 0                   |
+ | numPolls              | 158                 |
+ | numVips               | 1                   |
+ | outgoingTransfer      | 0                   |
+ | startTime             | 2011-03-28 15:51:05 |
+ +-----------------------+---------------------+
+ +-----------------------+---------------------+
+ |        Property       |        Value        |
+ +-----------------------+---------------------+
+ | averageNumConnections | 0.0                 |
+ | endTime               | 2011-03-30 03:58:44 |
+ | id                    | 30662               |
+ | incomingTransfer      | 0                   |
+ | numPolls              | 276                 |
+ | numVips               | 1                   |
+ | outgoingTransfer      | 0                   |
+ | startTime             | 2011-03-29 05:03:44 |
+ +-----------------------+---------------------+
+
 Delete load balancer::
 
  $ clb delete mylb
