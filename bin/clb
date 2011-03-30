@@ -234,6 +234,11 @@ class CloudloadbalancersShell(object):
         lb = self.clb.loadbalancers.find(name=args.loadbalancer)
         lb.delete()
 
+    def do_list_algorithms(self, args):
+        """List the available load balancing algorithms."""
+        a = self.clb.get_algorithms()
+        print_list2(['Algorithms'], self.clb.get_algorithms())
+
 class CloudloadbalancersHelpFormatter(argparse.HelpFormatter):
     def start_section(self, heading):
         # Title-case the headings
@@ -259,7 +264,10 @@ def print_list2(fields, rows):
     pt = prettytable.PrettyTable(fields)
     pt.aligns = ['l' for f in fields]
     for r in rows:
-        pt.add_row(r)
+        if isinstance(r, list):
+            pt.add_row(r)
+        else:
+            pt.add_row([r])
     #pt.printt(sortby=fields[0])
     pt.printt()
 
