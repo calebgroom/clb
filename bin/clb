@@ -236,8 +236,11 @@ class CloudloadbalancersShell(object):
 
     def do_list_algorithms(self, args):
         """List the available load balancing algorithms."""
-        a = self.clb.get_algorithms()
         print_list2(['Algorithms'], self.clb.get_algorithms())
+
+    def do_list_protocols(self, args):
+        """List the available protocols."""
+        print_list2(['Protocols'], self.clb.get_protocols()) 
 
 class CloudloadbalancersHelpFormatter(argparse.HelpFormatter):
     def start_section(self, heading):

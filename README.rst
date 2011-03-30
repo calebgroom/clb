@@ -103,6 +103,24 @@ List all supported load balancer algorithms::
  | WEIGHTED_ROUND_ROBIN       |
  +----------------------------+
 
+List all supported protocols::
+
+ $ clb list-protocols
+ +-----------+
+ | Protocols |
+ +-----------+
+ | FTP       |
+ | HTTP      |
+ | HTTPS     |
+ | IMAPS     |
+ | IMAPv4    |
+ | LDAP      |
+ | LDAPS     |
+ | POP3      |
+ | POP3S     |
+ | SMTP      |
+ +-----------+
+
 LICENSE
 =======
 
