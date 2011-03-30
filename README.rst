@@ -9,7 +9,7 @@
 Install
 ====
 
-Install python-cloubld::
+Install python-cloudlb::
 
   $ git clone git://github.com/rackspace/python-cloudlb.git
   $ sudo python setup.py install
