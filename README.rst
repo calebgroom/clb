@@ -90,6 +90,19 @@ Remove nodes from a load balancer::
 
  $ clb remove-nodes mylb '10.8.8.8:8080,10.9.9.9:8080'
 
+List all supported load balancer algorithms::
+
+ $ clb list-algorithms
+ +----------------------------+
+ |         Algorithms         |
+ +----------------------------+
+ | LEAST_CONNECTIONS          |
+ | RANDOM                     |
+ | ROUND_ROBIN                |
+ | WEIGHTED_LEAST_CONNECTIONS |
+ | WEIGHTED_ROUND_ROBIN       |
+ +----------------------------+
+
 LICENSE
 =======
 
