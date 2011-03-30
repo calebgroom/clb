@@ -31,11 +31,11 @@ Usage
 
 Create a load balancer with two nodes behind a public IP::
 
-  $ clb create mylb 80 HTTP '10.1.1.1:80,10.1.1.2:80' PUBLIC
+  $ clb create mylb 80 HTTP '10.1.1.1:80,10.1.1.2:80' public
 
 Create a load balancer with three nodes behind an internal Rackspace ServiceNet IP::
 
-  $ clb create mylb 80 HTTP '10.1.1.1:80,10.1.1.2:80,10.1.1.3:80' SERVICENET
+  $ clb create mylb 80 HTTP '10.1.1.1:80,10.1.1.2:80,10.1.1.3:80' servicenet
 
 Create a load balancer with two nodes by sharing a VIP (id 1234) from an existing load balancer::
 

@@ -216,15 +216,16 @@ class CloudloadbalancersShell(object):
     @arg('port', metavar='<port>', help='Load balancer port number.')
     @arg('protocol', metavar='<protocol>', help='Load balancer protocol type.')
     @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')
-    @arg('vip', metavar='<vip>', help='Virtual IP.  Either "PUBLIC", "SERVICENET", or ID of existing VIP to share.')
+    @arg('vip', metavar='<vip>', help='Virtual IP.  Either "public", "servicenet", or ID of existing VIP to share.')
     def do_create(self, args):
         """Create new load balancer."""
         nodes = split_nodes(args.nodes) 
 
-        if not args.vip in ["PUBLIC", "SERVICENET"]:
+        if not args.vip in ["public", "servicenet"]:
             vip = cloudlb.VirtualIP(id=int(args.vip))
         else:
-            vip = cloudlb.VirtualIP(type=args.vip)
+            print "VIP type", args.vip.upper()
+            vip = cloudlb.VirtualIP(type=args.vip.upper())
 
         self.clb.loadbalancers.create(name=args.name, port=args.port, 
           protocol=args.protocol,nodes=nodes, virtualIps=[vip])
