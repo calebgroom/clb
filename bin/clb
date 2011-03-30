@@ -210,6 +210,14 @@ class CloudloadbalancersShell(object):
         lb.update()
 
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('protocol', metavar='<protocol>', help="New protocol.")
+    def do_change_protocol(self,args):
+        """Change the protocol of an existing load balancer."""
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb.protocol = args.protocol
+        lb.update()
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')
     def do_add_nodes(self, args):
         """Add nodes to an existing load balancer."""

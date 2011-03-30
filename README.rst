@@ -82,6 +82,10 @@ Rename a load balancer::
 
  $ clb rename mylb my_new_name
 
+Change the protocol of a load balancer::
+
+ $ clb change-protocol mylb FTP
+
 Add nodes to a load balancer::
 
  $ clb add-nodes mylb '10.8.8.8:8080,10.9.9.9:8080'
