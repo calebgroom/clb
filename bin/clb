@@ -183,6 +183,23 @@ class CloudloadbalancersShell(object):
         # - Health Monitor
 
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    def do_show_monitor(self, args):
+        """Display load balancer's monitor."""
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        monitor = lb.healthmonitor()
+        m = monitor.get()
+        if m == None:
+            print "No monitor configured."
+        else:
+            fields = ['Field', 'Value']
+            rows = []
+            rows.append(['Type', m.type])
+            rows.append(['Delay', m.delay])
+            rows.append(['Timeout', m.timeout])
+            rows.append(['Attempts', m.attemptsBeforeDeactivation])
+            print_list2(fields, rows)
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     def do_show_usage(self, args):
         """Display load balancer usage.""" 
         lb = self.clb.loadbalancers.find(name=args.loadbalancer)
@@ -230,6 +247,21 @@ class CloudloadbalancersShell(object):
         nodes = split_nodes(args.nodes)
         lb.add_nodes(nodes)
 
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('delay', metavar='<delay>', help='The minimum number of seconds to wait before executing the health monitor.')
+    @arg('timeout', metavar='<timeout>', help='Maximum number of seconds to wait for a connection to be established before timing out.')
+    @arg('attempts', metavar='<attempts>', help='Number of permissible monitor failures before removing a node from rotation.')
+    def do_set_monitor_connect(self,args):
+        """Set the monitor to TCP connect for an existing load balancer."""
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        monitor = lb.healthmonitor()
+        hm = cloudlb.healthmonitor.HealthMonitor(
+          type="CONNECT",
+          delay=int(args.delay),
+          timeout=int(args.timeout),
+          attemptsBeforeDeactivation=int(args.attempts))
+        monitor.add(hm)
+        
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')
     def do_remove_nodes(self, args):

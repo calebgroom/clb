@@ -136,6 +136,22 @@ Remove nodes from a load balancer::
 
  $ clb remove-nodes mylb '10.8.8.8:8080,10.9.9.9:8080'
 
+Set the active health check monitor to TCP connect::
+
+ $ clb set-monitor-connect mylb 30 5 3
+
+Display the current health check monitor::
+
+ $ clb show-monitor share
+ +----------+---------+
+ |  Field   |  Value  |
+ +----------+---------+
+ | Type     | CONNECT |
+ | Delay    | 30      |
+ | Timeout  | 5       |
+ | Attempts | 3       |
+ +----------+---------+
+
 List all supported load balancer algorithms::
 
  $ clb list-algorithms
