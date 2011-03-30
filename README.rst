@@ -140,6 +140,11 @@ Set the active health check monitor to TCP connect::
 
  $ clb set-monitor-connect mylb 30 5 3
 
+Set the active health check monitor for HTTP(S) transactions::
+
+ $ clb set-monitor-http mylb 30 10 5 '/test.php' '^[234][0-9][0-9]$' 'my content'
+ $ clb set-monitor-https mylb 30 10 5 '/test.php' '^[234][0-9][0-9]$' 'my content'
+
 Display the current health check monitor::
 
  $ clb show-monitor share
