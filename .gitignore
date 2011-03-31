@@ -1,0 +1,9 @@
+*.egg-info
+*.pyc
+distribute-*
+cover/
+pip-log.txt
+/.coverage
+/dist
+/build
+/.tox
