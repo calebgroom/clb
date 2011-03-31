@@ -238,6 +238,14 @@ class CloudloadbalancersShell(object):
         lb.algorithm = algorithm_shorthand(args.algorithm)
         lb.update()
 
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('port', metavar='<port>', help="Port number.")
+    def do_change_port(self,args):
+        """Change the port number of an existing load balancer."""
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb.port = int(args.port)
+        lb.update()
+
     # Node operations
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')

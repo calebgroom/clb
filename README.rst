@@ -124,6 +124,10 @@ Rename a load balancer::
 
  $ clb rename mylb my_new_name
 
+Change the port of a load balancer::
+
+ $ clb change-port mylb 81
+
 Change the protocol of a load balancer::
 
  $ clb change-protocol mylb FTP
