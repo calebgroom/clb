@@ -128,6 +128,26 @@ Change the protocol of a load balancer::
 
  $ clb change-protocol mylb FTP
 
+Change the algorithm of a load balancer.  Specify the full algorithm name or the abbreviation.::
+
+ $ clb change-algorithm wlc
+ $ clb change-algoritm WEIGHTED_LEAST_CONNECTIONS
+ $ clb change-algoritm random
+
++--------------+----------------------------+
+| Abbreviation | Algorithm                  |
++==============+============================+
+| lc           | LEAST_CONNECTIONS          |
++--------------+----------------------------+
+| rand         | RANDOM                     |
++--------------+----------------------------+
+| rr           | ROUND_ROBIN                |
++--------------+----------------------------+
+| wlc          | WEIGHTED_LEAST_CONNECTIONS |
++--------------+----------------------------+
+| wrr          | WEIGHTED_ROUND_ROBIN       |
++--------------+----------------------------+
+
 Add nodes to a load balancer::
 
  $ clb add-nodes mylb '10.8.8.8:8080,10.9.9.9:8080'

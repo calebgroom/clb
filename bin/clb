@@ -230,6 +230,14 @@ class CloudloadbalancersShell(object):
         lb.protocol = args.protocol
         lb.update()
 
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('algorithm', metavar='<algorithm>', help="Full algorithm name or shorthand (rr, lc, rand, wlc, wrr)")
+    def do_change_algorithm(self,args):
+        """Change the algorithm of an existing load balancer."""
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb.algorithm = algorithm_shorthand(args.algorithm)
+        lb.update()
+
     # Node operations
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')
@@ -347,6 +355,18 @@ class CloudloadbalancersHelpFormatter(argparse.HelpFormatter):
         super(CloudloadbalancersHelpFormatter, self).start_section(heading)
 
 # Helper functions
+def algorithm_shorthand(algorithm):
+    """Convert abbreviated algorithm names to the full version."""
+    shorthand = {'rr': 'ROUND_ROBIN', 
+      'rand': 'RANDOM', 
+      'lc': 'LEAST_CONNECTIONS',
+      'wlc': 'WEIGHTED_LEAST_CONNECTIONS',
+      'wrr': 'WEIGHTED_ROUND_ROBIN'}
+    if algorithm in shorthand:
+        return shorthand[algorithm]
+    else:
+        return algorithm.upper()
+
 def split_nodes(node_string):
     """Split CSV string in IP:Port format into a list of Cloudlb.Nodes """
     nodes = []
