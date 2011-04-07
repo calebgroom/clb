@@ -193,9 +193,11 @@ class CloudloadbalancersShell(object):
             rows.append(['VIP ' + str(ip.id), vstr])
         for i in range(len(lb.nodes)):
             node = lb.nodes[i]
-            nstr = '%s:%s / %s / %s' % (node.address, node.port, node.condition, node.status)
-            # TODO add node weight
-            rows.append(['Node ' + str(i), nstr])
+            if node.weight is not None:
+                nstr = '%s:%s (Weight %d) / %s / %s' % (node.address, node.port, node.weight, node.condition, node.status)
+            else:
+                nstr = '%s:%s / %s / %s' % (node.address, node.port, node.condition, node.status)
+            rows.append(['Node ' + str(i + 1), nstr])
         sp = lb.session_persistence()
         rows.append(['Session Persistence', sp.get()])
         rows.append(['Connection Logging', lb.connection_logging().get()])
@@ -265,6 +267,43 @@ class CloudloadbalancersShell(object):
             destination = "%s:%d" % (n.address, n.port)
             if destination in node_strings:
                 n.delete()
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')
+    @arg('weight', metavar='<weight>', help='Weight integer value.')
+    def do_change_nodes_weight(self, args):
+        """Set weight for existing nodes."""
+        node_strings = args.nodes.split(',')
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        for n in lb.nodes:
+            destination = "%s:%d" % (n.address, n.port)
+            if destination in node_strings:
+                n.weight = args.weight
+                n.update()
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')
+    def do_enable_nodes(self, args):
+        """Enable existing nodes."""
+        node_strings = args.nodes.split(',')
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        for n in lb.nodes:
+            destination = "%s:%d" % (n.address, n.port)
+            if destination in node_strings:
+                n.condition = 'ENABLED'
+                n.update()
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')
+    def do_disable_nodes(self, args):
+        """Disable existing nodes."""
+        node_strings = args.nodes.split(',')
+        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        for n in lb.nodes:
+            destination = "%s:%d" % (n.address, n.port)
+            if destination in node_strings:
+                n.condition = 'DISABLED'
+                n.update()
 
     # Monitor operations
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')

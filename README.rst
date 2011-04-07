@@ -160,6 +160,14 @@ Remove nodes from a load balancer::
 
  $ clb remove-nodes mylb '10.8.8.8:8080,10.9.9.9:8080'
 
+Enable nodes on the load balancer::
+
+ $ clb enable-nodes mylb '10.8.8.8:8080,10.9.9.9:8080'
+
+Disable nodes on the load balancer::
+
+ $ clb disable-nodes mylb '10.8.8.8:8080,10.9.9.9:8080'
+
 Set the active health check monitor to TCP connect::
 
  $ clb set-monitor-connect mylb 30 5 3
