@@ -116,6 +116,14 @@ class CloudloadbalancersShell(object):
 
         args.func(args)
 
+    def _findlb(self, lbstr):
+        """Determine if lbstr is a load balancer name or id"""
+        try:
+            lb = self.clb.loadbalancers.get(int(lbstr))
+        except ValueError:
+            lb = self.clb.loadbalancers.find(name=lbstr)
+        return lb 
+
     @arg('command', metavar='<subcommand>', nargs='?', help='Display help for <subcommand>')
     def do_help(self, args):
         """
@@ -151,7 +159,7 @@ class CloudloadbalancersShell(object):
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     def do_delete(self, args):
         """Delete a load balancer"""
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb = self._findlb(args.loadbalancer) 
         lb.delete()
 
     def do_list(self, args):
@@ -178,7 +186,7 @@ class CloudloadbalancersShell(object):
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     def do_show(self, args):
         """List details of a specific load balancer."""
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb = self._findlb(args.loadbalancer) 
         fields = ['Field', 'Value']
         rows = []
         rows.append(['Name', lb.name])
@@ -212,7 +220,7 @@ class CloudloadbalancersShell(object):
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     def do_show_usage(self, args):
         """Display load balancer usage.""" 
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb = self._findlb(args.loadbalancer) 
         for u in lb.get_usage():
             print_dict(u)
 
@@ -220,7 +228,7 @@ class CloudloadbalancersShell(object):
     @arg('name', metavar='<name>', help="New load balancer name.")
     def do_rename(self,args):
         """Rename an existing load balancer."""
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb = self._findlb(args.loadbalancer) 
         lb.name = args.name
         lb.update()
 
@@ -228,7 +236,7 @@ class CloudloadbalancersShell(object):
     @arg('protocol', metavar='<protocol>', help="New protocol.")
     def do_change_protocol(self,args):
         """Change the protocol of an existing load balancer."""
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb = self._findlb(args.loadbalancer) 
         lb.protocol = args.protocol
         lb.update()
 
@@ -236,7 +244,7 @@ class CloudloadbalancersShell(object):
     @arg('algorithm', metavar='<algorithm>', help="Full algorithm name or shorthand (rr, lc, rand, wlc, wrr)")
     def do_change_algorithm(self,args):
         """Change the algorithm of an existing load balancer."""
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb = self._findlb(args.loadbalancer) 
         lb.algorithm = algorithm_shorthand(args.algorithm)
         lb.update()
 
@@ -244,7 +252,7 @@ class CloudloadbalancersShell(object):
     @arg('port', metavar='<port>', help="Port number.")
     def do_change_port(self,args):
         """Change the port number of an existing load balancer."""
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb = self._findlb(args.loadbalancer) 
         lb.port = int(args.port)
         lb.update()
 
@@ -253,7 +261,7 @@ class CloudloadbalancersShell(object):
     @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')
     def do_add_nodes(self, args):
         """Add nodes to an existing load balancer."""
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb = self._findlb(args.loadbalancer) 
         nodes = split_nodes(args.nodes)
         lb.add_nodes(nodes)
 
@@ -262,7 +270,7 @@ class CloudloadbalancersShell(object):
     def do_remove_nodes(self, args):
         """Remove nodes from an existing load balancer."""
         node_strings = args.nodes.split(',')
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb = self._findlb(args.loadbalancer) 
         for n in lb.nodes:
             destination = "%s:%d" % (n.address, n.port)
             if destination in node_strings:
@@ -274,7 +282,7 @@ class CloudloadbalancersShell(object):
     def do_change_nodes_weight(self, args):
         """Set weight for existing nodes."""
         node_strings = args.nodes.split(',')
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb = self._findlb(args.loadbalancer) 
         for n in lb.nodes:
             destination = "%s:%d" % (n.address, n.port)
             if destination in node_strings:
@@ -286,7 +294,7 @@ class CloudloadbalancersShell(object):
     def do_enable_nodes(self, args):
         """Enable existing nodes."""
         node_strings = args.nodes.split(',')
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb = self._findlb(args.loadbalancer) 
         for n in lb.nodes:
             destination = "%s:%d" % (n.address, n.port)
             if destination in node_strings:
@@ -298,7 +306,7 @@ class CloudloadbalancersShell(object):
     def do_disable_nodes(self, args):
         """Disable existing nodes."""
         node_strings = args.nodes.split(',')
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb = self._findlb(args.loadbalancer) 
         for n in lb.nodes:
             destination = "%s:%d" % (n.address, n.port)
             if destination in node_strings:
@@ -309,7 +317,7 @@ class CloudloadbalancersShell(object):
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     def do_show_monitor(self, args):
         """Display load balancer's monitor."""
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb = self._findlb(args.loadbalancer) 
         monitor = lb.healthmonitor()
         m = monitor.get()
         if m == None:
@@ -335,7 +343,7 @@ class CloudloadbalancersShell(object):
     @arg('attempts', metavar='<attempts>', help='Number of permissible monitor failures before removing a node from rotation.')
     def do_set_monitor_connect(self,args):
         """Set the monitor to TCP connect for an existing load balancer."""
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb = self._findlb(args.loadbalancer) 
         monitor = lb.healthmonitor()
         hm = cloudlb.healthmonitor.HealthMonitor(
           type="CONNECT",
@@ -353,7 +361,7 @@ class CloudloadbalancersShell(object):
     @arg('body', metavar='<body>', help='')
     def do_set_monitor_http(self, args):
         """Set the monitor to HTTP for an existing load balancer."""
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb = self._findlb(args.loadbalancer) 
         monitor = lb.healthmonitor()
         hm = cloudlb.healthmonitor.HealthMonitor(
           type="HTTP",
@@ -374,7 +382,7 @@ class CloudloadbalancersShell(object):
     @arg('body', metavar='<body>', help='')
     def do_set_monitor_https(self, args):
         """Set the monitor to HTTPS for an existing load balancer."""
-        lb = self.clb.loadbalancers.find(name=args.loadbalancer)
+        lb = self._findlb(args.loadbalancer) 
         monitor = lb.healthmonitor()
         hm = cloudlb.healthmonitor.HealthMonitor(
           type="HTTPS",
