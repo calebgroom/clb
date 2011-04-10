@@ -252,7 +252,10 @@ class CloudloadbalancersShell(object):
                 nstr = '%s:%s / %s / %s' % (node.address, node.port, node.condition, node.status)
             rows.append(['Node ' + str(i + 1), nstr])
         sp = lb.session_persistence()
-        rows.append(['Session Persistence', sp.get()])
+        sptype = sp.get()
+        if sptype is not None:
+            sptype = sptype.persistenceType
+        rows.append(['Session Persistence', sptype])
         rows.append(['Connection Logging', lb.connection_logging().get()])
         rows.append(['Cluster', lb.cluster])
         rows.append(['Created', lb.created])
@@ -466,6 +469,22 @@ class CloudloadbalancersShell(object):
         lb = self.findlb(args.loadbalancer, readonly=False) 
         cl = lb.connection_logging()
         cl.disable()
+
+    # Persistence
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    def do_enable_persistence(self, args):
+        """Enable HTTP cookie session persistence"""
+        lb = self.findlb(args.loadbalancer, readonly=False) 
+        ss = cloudlb.sessionpersistence.SessionPersistence(persistenceType="HTTP_COOKIE")
+        ssp = lb.session_persistence()
+        ssp.add(ss)
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    def do_disable_persistence(self, args):
+        """Disable HTTP cookie session persistence"""
+        lb = self.findlb(args.loadbalancer, readonly=False) 
+        ssp = lb.session_persistence()
+        ssp.delete()
 
     # Load balancer features
     def do_list_algorithms(self, args):
