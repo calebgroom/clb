@@ -29,6 +29,17 @@ library (https://github.com/rackspace/python-cloudlb).
 Usage
 =====
 
+Rackspace Cloud credentials can be specified on the command line or stored in your user's environment.  Your username, password, and region are required.  These two sets of commands are equivalent::
+
+ $ export CLOUD_LOADBALANCERS_USERNAME='myusername'
+ $ export CLOUD_LOADBALANCERS_API_KEY='abcdefg'
+ $ export CLOUD_LOADBALANCERS_REGION='chicago'
+ $ clb list
+
+ $ clb --username myusername --apikey abcdefg --region chicago list
+
+The following examples assume the credentials are stored in your user's environment. 
+
 Create a load balancer with two nodes behind a public IP::
 
   $ clb create mylb 80 HTTP '10.1.1.1:80,10.1.1.2:80' public
