@@ -445,6 +445,13 @@ class CloudloadbalancersShell(object):
           bodyRegex=args.body)
         monitor.add(hm)
 
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    def do_delete_monitor(self, args):
+        """Delete the health monitor."""
+        lb = self.findlb(args.loadbalancer, readonly=False) 
+        monitor = lb.healthmonitor()
+        monitor.delete()
+
     # Load balancer features
     def do_list_algorithms(self, args):
         """List the available load balancing algorithms."""
