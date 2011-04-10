@@ -195,8 +195,11 @@ class CloudloadbalancersShell(object):
         else:
             vip = cloudlb.VirtualIP(type=args.vip.upper())
 
-        self.clb.loadbalancers.create(name=args.name, port=args.port, 
+        lb = self.clb.loadbalancers.create(name=args.name, port=args.port, 
           protocol=args.protocol,nodes=nodes, virtualIps=[vip])
+
+        args.loadbalancer = lb.id
+        self.do_show(args)
 
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     def do_delete(self, args):
