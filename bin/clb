@@ -2,11 +2,14 @@
 import cloudlb
 import argparse
 import os
+import os.path
 import prettytable
 import sys
 import textwrap
 import httplib2
 import time
+import ConfigParser
+from datetime import datetime, timedelta
 
 # Decorator for args
 def arg(*args, **kwargs):
@@ -115,7 +118,31 @@ class CloudloadbalancersShell(object):
 
         self.clb = self._api_class(user, apikey, region)
 
+        configreader = ConfigParser.RawConfigParser()
+        configfilename = os.path.expanduser('~/.clb-lastconnection')
+        if os.path.exists(configfilename):
+            configreader.read(configfilename)
+            ts = configreader.get('connection', 'timestamp')
+            then = datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
+            now = datetime.now()
+            duration = now - then
+            if duration.days < 1:
+                print "reusing authtoken"
+                self.clb.client.auth_token = configreader.get('connection', 'authtoken')
+                self.clb.client.region_account_url = configreader.get('connection', 'regionurl')
+            else:
+                print "refusing to reuse authtoken"
+
         args.func(args)
+
+        with open(configfilename, 'wb') as configfile:
+            configwriter = ConfigParser.RawConfigParser()
+            configwriter.add_section('connection')
+            configwriter.set('connection', 'authtoken', self.clb.client.auth_token)
+            configwriter.set('connection', 'regionurl', self.clb.client.region_account_url)
+            configwriter.set('connection', 'timestamp', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            configwriter.write(configfile)
+            os.chmod(configfilename, 0600)
 
     def findlb(self, lbstr, readonly=True):
         """Find a load balacer by name or id.  Optionally, delay until the load balancer can be modified."""
@@ -169,7 +196,6 @@ class CloudloadbalancersShell(object):
         if not args.vip in ["public", "servicenet"]:
             vip = cloudlb.VirtualIP(id=int(args.vip))
         else:
-            print "VIP type", args.vip.upper()
             vip = cloudlb.VirtualIP(type=args.vip.upper())
 
         self.clb.loadbalancers.create(name=args.name, port=args.port, 
