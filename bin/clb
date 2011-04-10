@@ -127,11 +127,8 @@ class CloudloadbalancersShell(object):
             now = datetime.now()
             duration = now - then
             if duration.days < 1:
-                print "reusing authtoken"
                 self.clb.client.auth_token = configreader.get('connection', 'authtoken')
                 self.clb.client.region_account_url = configreader.get('connection', 'regionurl')
-            else:
-                print "refusing to reuse authtoken"
 
         args.func(args)
 
