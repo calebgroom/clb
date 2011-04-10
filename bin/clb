@@ -452,6 +452,21 @@ class CloudloadbalancersShell(object):
         monitor = lb.healthmonitor()
         monitor.delete()
 
+    # Connection logging
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    def do_enable_logging(self, args):
+        """Enable connection logging."""
+        lb = self.findlb(args.loadbalancer, readonly=False) 
+        cl = lb.connection_logging()
+        cl.enable()
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    def do_disable_logging(self, args):
+        """Disable connection logging."""
+        lb = self.findlb(args.loadbalancer, readonly=False) 
+        cl = lb.connection_logging()
+        cl.disable()
+
     # Load balancer features
     def do_list_algorithms(self, args):
         """List the available load balancing algorithms."""
