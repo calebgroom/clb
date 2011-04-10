@@ -488,15 +488,15 @@ def csv_list(listtext, sep1=', ', sep2=', and '):
         or listtext[0])
 
 def print_list2(fields, rows):
-    pt = prettytable.PrettyTable(fields)
-    pt.aligns = ['l' for f in fields]
-    for r in rows:
-        if isinstance(r, list):
-            pt.add_row(r)
-        else:
-            pt.add_row([r])
-    #pt.printt(sortby=fields[0])
-    pt.printt()
+    if len(rows) > 0:
+        pt = prettytable.PrettyTable(fields)
+        pt.aligns = ['l' for f in fields]
+        for r in rows:
+            if isinstance(r, list):
+                pt.add_row(r)
+            else:
+                pt.add_row([r])
+        pt.printt()
 
 def print_list(objs, fields, formatters={}):
     pt = prettytable.PrettyTable([f for f in fields], caching=False)
