@@ -118,6 +118,8 @@ class CloudloadbalancersShell(object):
 
         self.clb = self._api_class(user, apikey, region)
 
+        # If we have a recent authtoken, try to use it.
+        reused_authkey = False
         configreader = ConfigParser.RawConfigParser()
         configfilename = os.path.expanduser('~/.clb-lastconnection')
         if os.path.exists(configfilename):
@@ -127,10 +129,20 @@ class CloudloadbalancersShell(object):
             now = datetime.now()
             duration = now - then
             if duration.days < 1:
+                reused_authkey = True
                 self.clb.client.auth_token = configreader.get('connection', 'authtoken')
                 self.clb.client.region_account_url = configreader.get('connection', 'regionurl')
 
-        args.func(args)
+        try:
+            args.func(args)
+        except cloudlb.errors.ResponseError as e:
+            if e.status == 401 and e.reason == 'Unauthorized' and reused_authkey:
+                # If the old auth token didn't work, try again as if it wasn't read
+                self.clb.client.auth_token = None
+                self.clb.client.region_account_url = None
+                args.func(args)
+            else:
+                print >> sys.stderr, "ERROR: API error %d. %s" % (e.status, e.reason) 
 
         with open(configfilename, 'wb') as configfile:
             configwriter = ConfigParser.RawConfigParser()
@@ -410,13 +422,17 @@ class CloudloadbalancersShell(object):
     @arg('delay', metavar='<delay>', help='The minimum number of seconds to wait before executing the health monitor.')
     @arg('timeout', metavar='<timeout>', help='Maximum number of seconds to wait for a connection to be established before timing out.')
     @arg('attempts', metavar='<attempts>', help='Number of permissible monitor failures before removing a node from rotation.')
-    @arg('path', metavar='<path>', help='The HTTP patch that will be used in the monitor request.')
+    @arg('path', metavar='<path>', help='The HTTP path that will be used in the monitor request.')
     @arg('status', metavar='<status>', help='A regular expression that will be used to evaluate the HTTP status code returned in the response.')
     @arg('body', metavar='<body>', help='')
     def do_set_monitor_http(self, args):
         """Set the monitor to HTTP for an existing load balancer."""
         lb = self.findlb(args.loadbalancer) 
         monitor = lb.healthmonitor()
+       
+        if args.status == 'standard':
+            args.status = '^[234][0-9][0-9]$'
+
         hm = cloudlb.healthmonitor.HealthMonitor(
           type="HTTP",
           delay=int(args.delay),
