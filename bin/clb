@@ -427,21 +427,7 @@ class CloudloadbalancersShell(object):
     @arg('body', metavar='<body>', help='')
     def do_set_monitor_http(self, args):
         """Set the monitor to HTTP for an existing load balancer."""
-        lb = self.findlb(args.loadbalancer) 
-        monitor = lb.healthmonitor()
-       
-        if args.status == 'standard':
-            args.status = '^[234][0-9][0-9]$'
-
-        hm = cloudlb.healthmonitor.HealthMonitor(
-          type="HTTP",
-          delay=int(args.delay),
-          timeout=int(args.timeout),
-          attemptsBeforeDeactivation=int(args.attempts),
-          path=args.path,
-          statusRegex=args.status,
-          bodyRegex=args.body)
-        monitor.add(hm)
+        self._set_http_monitor(args, 'HTTP')
         
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     @arg('delay', metavar='<delay>', help='The minimum number of seconds to wait before executing the health monitor.')
@@ -452,10 +438,18 @@ class CloudloadbalancersShell(object):
     @arg('body', metavar='<body>', help='')
     def do_set_monitor_https(self, args):
         """Set the monitor to HTTPS for an existing load balancer."""
+        self._set_http_monitor(args, 'HTTPS')
+
+    def _set_http_monitor(self, args, method):
+        """Configure HTTP or HTTPS monitor"""
         lb = self.findlb(args.loadbalancer) 
         monitor = lb.healthmonitor()
+
+        if args.status == 'standard':
+            args.status = '^[234][0-9][0-9]$'
+
         hm = cloudlb.healthmonitor.HealthMonitor(
-          type="HTTPS",
+          type=method,
           delay=int(args.delay),
           timeout=int(args.timeout),
           attemptsBeforeDeactivation=int(args.attempts),
