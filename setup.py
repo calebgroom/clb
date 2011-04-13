@@ -15,6 +15,8 @@ def read(fname):
     else:
         return ""
 
+requirements = ['python-cloudlb', 'httplib2', 'argparse', 'prettytable']
+
 setup(name=NAME,
       version=VERSION,
       download_url="%s/zipball/%s" % (GITHUB_URL, VERSION),
@@ -28,6 +30,8 @@ setup(name=NAME,
       zip_safe=False,
       scripts=['bin/clb'],
       packages=find_packages(exclude=['tests', 'debian']),
+      install_requires = requirements,
+      dependency_links = ['https://github.com/rackspace/python-cloudlb/tarball/master#egg=python-cloudlb'],
       tests_require=["nose"],
       test_suite="nose.collector",
       classifiers=[
