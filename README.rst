@@ -22,7 +22,7 @@ clb is based on the shell.py script from jacobian's python-cloudservers project
 (https://github.com/jacobian/python-cloudservers) and uses the python-cloudlb
 library (https://github.com/rackspace/python-cloudlb).
 
-Usage
+Credentials
 =====
 
 Rackspace Cloud credentials can be specified on the command line or stored in your user's environment.  Your username, password, and region are required.  These two sets of commands are equivalent::
@@ -35,6 +35,39 @@ Rackspace Cloud credentials can be specified on the command line or stored in yo
  $ clb --username myusername --apikey abcdefg --region chicago list
 
 The following examples assume the credentials are stored in your user's environment. 
+
+Output
+=====
+
+Output is formatted for visual display::
+
+  $ clb list
+  +----------------+------+------+----------+-------------+-------+--------------------+
+  |      Name      |  ID  | Port | Protocol |  Algorithm  | Nodes |        IPs         |
+  +----------------+------+------+----------+-------------+-------+--------------------+
+  | lb-with-nodes2 | 1713 | 80   | HTTP     | ROUND_ROBIN | 3     | IPV4/10.183.252.96 |
+  | lb-node-csv    | 7362 | 80   | HTTP     | RANDOM      | 2     | IPV4/10.183.253.16 |
+  | publiclb       | 8738 | 21   | HTTP     | ROUND_ROBIN | 2     | IPV4/50.56.4.210   |
+  +----------------+------+------+----------+-------------+-------+--------------------+
+
+The optional argument for batch mode will create parsable output.  The field delimiter can be overwritten as well::
+
+  $ clb --batch list
+  Name,ID,Port,Protocol,Algorithm,Nodes,IPs
+  lb-with-nodes2,1713,80,HTTP,ROUND_ROBIN,3,IPV4/10.183.252.96,
+  lb-node-csv,7362,80,HTTP,RANDOM,2,IPV4/10.183.253.16,
+  publiclb,8738,21,HTTP,ROUND_ROBIN,2,IPV4/50.56.4.210,
+
+The field delimiter can be overwritten as well::
+
+  $ clb --batch --delimiter='|' list
+  Name|ID|Port|Protocol|Algorithm|Nodes|IPs
+  lb-with-nodes2|1713|80|HTTP|ROUND_ROBIN|3|IPV4/10.183.252.96|
+  lb-node-csv|7362|80|HTTP|RANDOM|2|IPV4/10.183.253.16|
+  publiclb|8738|21|HTTP|ROUND_ROBIN|2|IPV4/50.56.4.210|
+
+Usage
+=====
 
 Create a load balancer with two nodes behind a public IP::
 

@@ -54,12 +54,12 @@ class CloudloadbalancersShell(object):
         self.parser.add_argument('-b', '--batch',
             default = False,
             action = 'store_true',
-            help = argparse.SUPPRESS)
+            help = 'Use batch mode for output that can be parsed.')
 
         self.parser.add_argument('--delimiter',
             default = ',',
             action = 'store',
-            help = argparse.SUPPRESS)
+            help = 'Specify the delimiter for batch mode.  Defaults to ","')
 
         self.parser.add_argument('--username',
             default = env('CLOUD_LOADBALANCERS_USERNAME') or env('CLOUD_SERVERS_USERNAME'),
