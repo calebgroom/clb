@@ -8,6 +8,7 @@ import sys
 import textwrap
 import httplib2
 import time
+import types
 import ConfigParser
 from datetime import datetime, timedelta
 
@@ -48,6 +49,16 @@ class CloudloadbalancersShell(object):
         self.parser.add_argument('--debug',
             default = False,
             action = 'store_true',
+            help = argparse.SUPPRESS)
+
+        self.parser.add_argument('-b', '--batch',
+            default = False,
+            action = 'store_true',
+            help = argparse.SUPPRESS)
+
+        self.parser.add_argument('--delimiter',
+            default = ',',
+            action = 'store',
             help = argparse.SUPPRESS)
 
         self.parser.add_argument('--username',
@@ -229,7 +240,7 @@ class CloudloadbalancersShell(object):
             for ip in lb.virtualIps:
                 ips.append("%s/%s" % (ip.ipVersion, ip.address))
             rows.append([lb.name, lb.id, lb.port, lb.protocol, lb.algorithm, len(lb.nodes), csv_list(ips)])
-        print_list2(fields, rows)
+        print_list2(fields, rows, args.batch, args.delimiter)
 
     def do_list_deleted(self, args):
         """List deleted load balancers."""
@@ -238,7 +249,7 @@ class CloudloadbalancersShell(object):
         lbs = self.clb.loadbalancers.list_deleted()
         for lb in lbs:
             rows.append([lb.name, lb.id])
-        print_list2(fields, rows)
+        print_list2(fields, rows, args.batch, args.delimiter)
 
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     def do_show(self, args):
@@ -273,7 +284,7 @@ class CloudloadbalancersShell(object):
         rows.append(['Created', lb.created])
         rows.append(['Updated', lb.updated])
  
-        print_list2(fields, rows)
+        print_list2(fields, rows, args.batch, args.delimiter)
         # TODO
         # - ACL
 
@@ -401,7 +412,7 @@ class CloudloadbalancersShell(object):
                 rows.append(['Status Regex', m.statusRegex])
                 rows.append(['Body Regex', m.bodyRegex])
 
-            print_list2(fields, rows)
+            print_list2(fields, rows, args.batch, args.delimiter)
 
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     @arg('delay', metavar='<delay>', help='The minimum number of seconds to wait before executing the health monitor.')
@@ -499,11 +510,11 @@ class CloudloadbalancersShell(object):
     # Load balancer features
     def do_list_algorithms(self, args):
         """List the available load balancing algorithms."""
-        print_list2(['Algorithms'], self.clb.get_algorithms())
+        print_list2(['Algorithms'], self.clb.get_algorithms(), args.batch, args.delimiter)
 
     def do_list_protocols(self, args):
         """List the available protocols."""
-        print_list2(['Protocols'], self.clb.get_protocols()) 
+        print_list2(['Protocols'], self.clb.get_protocols(), args.batch, args.delimiter) 
 
 class CloudloadbalancersHelpFormatter(argparse.HelpFormatter):
     def start_section(self, heading):
@@ -538,16 +549,29 @@ def csv_list(listtext, sep1=', ', sep2=', and '):
         and ("%s%s%s" % (sep1.join(listtext[:-1]), sep2, listtext[-1])) 
         or listtext[0])
 
-def print_list2(fields, rows):
+def print_list2(fields, rows, batchmode=False,delim='|'):
     if len(rows) > 0:
-        pt = prettytable.PrettyTable(fields)
-        pt.aligns = ['l' for f in fields]
-        for r in rows:
-            if isinstance(r, list):
-                pt.add_row(r)
-            else:
-                pt.add_row([r])
-        pt.printt()
+        if batchmode:
+            print delim.join(fields)
+            for row in rows:
+                line = ''
+                for col in row:
+                    if type(col) in [types.UnicodeType, types.StringType]:
+                        line = line + '%s' % col + delim
+                    elif type(col) is datetime:
+                        line = line + str(col) + delim
+                    else:
+                        line = line + repr(col) + delim
+                print line
+        else:
+            pt = prettytable.PrettyTable(fields)
+            pt.aligns = ['l' for f in fields]
+            for r in rows:
+                if isinstance(r, list):
+                    pt.add_row(r)
+                else:
+                    pt.add_row([r])
+            pt.printt()
 
 def print_list(objs, fields, formatters={}):
     pt = prettytable.PrettyTable([f for f in fields], caching=False)
