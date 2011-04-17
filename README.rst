@@ -50,7 +50,7 @@ Output is formatted for visual display::
   | publiclb       | 8738 | 21   | HTTP     | ROUND_ROBIN | 2     | IPV4/50.56.4.210   |
   +----------------+------+------+----------+-------------+-------+--------------------+
 
-The optional argument for batch mode will create parsable output.  The field delimiter can be overwritten as well::
+The optional argument for batch mode will create parsable output::
 
   $ clb --batch list
   Name,ID,Port,Protocol,Algorithm,Nodes,IPs
