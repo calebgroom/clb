@@ -229,6 +229,22 @@ Display the current health check monitor::
  | Attempts | 3       |
  +----------+---------+
 
+Create an access control list that denies traffic::
+
+ $ clb add-acls mylb deny 192.168.0.0/16
+
+Create an access control list that allows traffic::
+
+ $ clb add-acls mylb allow 50.40.30.10
+
+Remove two access control lists by specifying a comma-delimited list of ACL ids::
+
+ $ clb remove-acls mylb 1234,5678
+
+Remove all access control lists::
+
+ $ clb clear-acls mylb
+
 List all supported load balancer algorithms::
 
  $ clb list-algorithms

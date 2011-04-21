@@ -279,14 +279,18 @@ class CloudloadbalancersShell(object):
         if sptype is not None:
             sptype = sptype.persistenceType
         rows.append(['Session Persistence', sptype])
+
+        accesslist = lb.accesslist()
+        acls = accesslist.list()
+        for i in range(len(acls)):
+            rows.append(['ACL %d' % (acls[i].id), '%s from %s' % (acls[i].type, acls[i].address)])
+
         rows.append(['Connection Logging', lb.connection_logging().get()])
         rows.append(['Cluster', lb.cluster])
         rows.append(['Created', lb.created])
         rows.append(['Updated', lb.updated])
  
         print_list2(fields, rows, args.batch, args.delimiter)
-        # TODO
-        # - ACL
 
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     def do_show_usage(self, args):
@@ -506,6 +510,40 @@ class CloudloadbalancersShell(object):
         lb = self.findlb(args.loadbalancer, readonly=False) 
         ssp = lb.session_persistence()
         ssp.delete()
+
+    # ACL
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('method', metavar='<method>', help='Either allow or deny.')
+    @arg('networks', metavar='<networks>', help='Comma separated list of network ranges.  Ex: \'192.168.1.0/24,10.10.10.1\'')
+    def do_add_acls(self, args):
+        """Add new ACL rule to allow or deny traffic."""
+        lb = self.findlb(args.loadbalancer, readonly=False)
+        networks = args.networks.split(',')
+        accesslist = []
+        for network in networks:
+            accesslist.append(cloudlb.accesslist.NetworkItem(address=network, type=args.method.upper()))
+        lb_acl = lb.accesslist()
+        lb_acl.add(accesslist)
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('aclids', metavar='<aclids>', help='Comma separated list of ACL IDs.  IDs are displayed via the \'show\' command.')
+    def do_remove_acls(self, args):
+        """Remove an existing ACL rule."""
+        lb = self.findlb(args.loadbalancer, readonly=False)
+        for acl_id in args.aclids.split(','):
+            lb = self._remove_acls(lb, int(acl_id))
+
+    def _remove_acls(self, lb, aclid):
+        accesslist = lb.accesslist()
+        accesslist.delete(aclid)
+        return self.findlb(lb.id, readonly=False)
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    def do_clear_acls(self, args):
+        """Delete all ACLs for an existing load balancer."""
+        lb = self.findlb(args.loadbalancer, readonly=False)
+        lb_acl = lb.accesslist()
+        lb_acl.delete()
 
     # Load balancer features
     def do_list_algorithms(self, args):
