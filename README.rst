@@ -212,9 +212,9 @@ Set the active health check monitor to TCP connect::
 
  $ clb set-monitor-connect mylb 30 5 3
 
-Set the active health check monitor for HTTP(S) transactions::
+Set the active health check monitor for HTTP(S) transactions. Regular expressions are used for the body and the HTTP status code. The status keyword 'standard' represents '^[234][0-9][0-9]$'.   ::
 
- $ clb set-monitor-http mylb 30 10 5 '/test.php' '^[234][0-9][0-9]$' 'my content'
+ $ clb set-monitor-http mylb 30 10 5 '/test.php' standard 'my content'
  $ clb set-monitor-https mylb 30 10 5 '/test.php' '^[234][0-9][0-9]$' 'my content'
 
 Display the current health check monitor::
