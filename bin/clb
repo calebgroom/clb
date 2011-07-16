@@ -232,14 +232,15 @@ class CloudloadbalancersShell(object):
 
     def do_list(self, args):
         """List active load balancers."""
-        fields = ['Name', 'ID', 'Port', 'Protocol', 'Algorithm', 'Nodes', 'IPs']
+        fields = ['ID', 'Name', 'Port', 'Protocol', 'Algorithm', 'Nodes', 'IPs']
         rows = []
         lbs = self.clb.loadbalancers.list()
+        lbs.sort(key=lambda lb: lb.id)
         for lb in lbs:
             ips = []
             for ip in lb.virtualIps:
                 ips.append("%s/%s" % (ip.ipVersion, ip.address))
-            rows.append([lb.name, lb.id, lb.port, lb.protocol, lb.algorithm, len(lb.nodes), csv_list(ips)])
+            rows.append([lb.id, lb.name, lb.port, lb.protocol, lb.algorithm, len(lb.nodes), csv_list(ips)])
         print_list2(fields, rows, args.batch, args.delimiter)
 
     def do_list_deleted(self, args):
