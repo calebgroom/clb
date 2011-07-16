@@ -4,6 +4,7 @@ import argparse
 import os
 import os.path
 import prettytable
+import socket
 import sys
 import textwrap
 import httplib2
@@ -268,6 +269,8 @@ class CloudloadbalancersShell(object):
             ip = lb.virtualIps[i]
             vstr = '%s (%s)' % (ip.address, ip.type)
             rows.append(['VIP ' + str(ip.id), vstr])
+	# Sort nodes by IP address
+	lb.nodes = sorted(lb.nodes, key=lambda node: socket.inet_aton(node.address))
         for i in range(len(lb.nodes)):
             node = lb.nodes[i]
             if node.weight is not None:
