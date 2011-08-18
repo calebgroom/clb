@@ -242,6 +242,8 @@ class CloudloadbalancersShell(object):
             for ip in lb.virtualIps:
                 ips.append("%s/%s" % (ip.ipVersion, ip.address))
             rows.append([lb.id, lb.name, lb.port, lb.protocol, lb.algorithm, len(lb.nodes), csv_list(ips)])
+            # Throttle requests if there are more than 5 LBs
+            if len(lbs) >= 5: time.sleep(.2)
         print_list2(fields, rows, args.batch, args.delimiter)
 
     def do_list_deleted(self, args):
