@@ -140,7 +140,7 @@ class CloudloadbalancersShell(object):
             then = datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
             now = datetime.now()
             duration = now - then
-            if duration.days < 1:
+            if duration.days < 1 and user == configreader.get('connection', 'username'):
                 reused_authkey = True
                 self.clb.client.auth_token = configreader.get('connection', 'authtoken')
                 self.clb.client.region_account_url = configreader.get('connection', 'regionurl')
@@ -159,6 +159,7 @@ class CloudloadbalancersShell(object):
         with open(configfilename, 'wb') as configfile:
             configwriter = ConfigParser.RawConfigParser()
             configwriter.add_section('connection')
+            configwriter.set('connection', 'username', self.clb.client.username)
             configwriter.set('connection', 'authtoken', self.clb.client.auth_token)
             configwriter.set('connection', 'regionurl', self.clb.client.region_account_url)
             configwriter.set('connection', 'timestamp', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
