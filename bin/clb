@@ -239,9 +239,12 @@ class CloudloadbalancersShell(object):
         lbs.sort(key=lambda lb: lb.id)
         for lb in lbs:
             ips = []
-            for ip in lb.virtualIps:
-                ips.append("%s/%s" % (ip.ipVersion, ip.address))
-            rows.append([lb.id, lb.name, lb.port, lb.protocol, lb.algorithm, len(lb.nodes), csv_list(ips)])
+            if hasattr(lb, 'virtualIps'):
+                for ip in lb.virtualIps:
+                    ips.append("%s/%s" % (ip.ipVersion, ip.address))
+                rows.append([lb.id, lb.name, lb.port, lb.protocol, lb.algorithm, len(lb.nodes), csv_list(ips)])
+            else:
+                rows.append([lb.id, lb.name, lb.port, lb.protocol, lb.algorithm, len(lb.nodes), ''])
             # Throttle requests if there are more than 5 LBs
             if len(lbs) >= 5: time.sleep(.2)
         print_list2(fields, rows, args.batch, args.delimiter)
