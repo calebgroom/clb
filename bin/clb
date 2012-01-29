@@ -299,6 +299,12 @@ class CloudloadbalancersShell(object):
         print_list2(fields, rows, args.batch, args.delimiter)
 
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    def do_show_stats(self, args):
+        """Display real-time load balancer stats.""" 
+        lb = self.findlb(args.loadbalancer) 
+        print_dict(lb.get_stats())
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     def do_show_all_usage(self, args):
         """Display all load balancer usage records.""" 
         lb = self.findlb(args.loadbalancer) 

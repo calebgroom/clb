@@ -122,6 +122,20 @@ List load balancer details::
 
 List load balancer usage::
 
+  $ clb show-stats mylb
+  +-------------------+-------+
+  |      Property     | Value |
+  +-------------------+-------+
+  | connectError      | 0     |
+  | connectFailure    | 0     |
+  | connectTimeOut    | 0     |
+  | dataTimedOut      | 0     |
+  | keepAliveTimedOut | 0     |
+  | maxConn           | 0     |
+  +-------------------+-------+
+
+List load balancer usage::
+
   $ clb show-usage mylb
   +--------------------------+---------------------+
   |          Field           |        Value        |
