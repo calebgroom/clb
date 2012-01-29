@@ -105,26 +105,29 @@ List deleted load balancers::
 List load balancer details::
 
   $ clb show mylb
-  +---------------------+----------------------------------+
-  |        Field        |              Value               |
-  +---------------------+----------------------------------+
-  | Name                | mylb                             |
-  | ID                  | 7364                             |
-  | Status              | ACTIVE                           |
-  | Port                | 81                               |
-  | Protocol            | HTTP                             |
-  | Algorithm           | RANDOM                           |
-  | VIP 663             | 10.183.253.16 (SERVICENET)       |
-  | Node 0              | 10.5.5.5:444 / ENABLED / ONLINE  |
-  | Node 1              | 10.7.7.7:80 / ENABLED / ONLINE   |
-  | Node 2              | 10.8.8.8:8080 / ENABLED / ONLINE |
-  | Node 3              | 10.4.4.4:444 / ENABLED / ONLINE  |
-  | Node 4              | 10.6.6.6:80 / ENABLED / ONLINE   |
-  | Session Persistence | None                             |
-  | Connection Logging  | False                            |
-  | Cluster             | ztm-n02.lbaas.ord1.rackspace.net |
-  | Created             | 2011-03-28 15:50:56              |
-  | Updated             | 2011-03-28 21:15:07              |
+  +------------------------+----------------------------------+
+  |        Field           |              Value               |
+  +------------------------+----------------------------------+
+  | Name                   | mylb                             |
+  | ID                     | 7364                             |
+  | Status                 | ACTIVE                           |
+  | Port                   | 81                               |
+  | Protocol               | HTTP                             |
+  | Algorithm              | RANDOM                           |
+  | VIP 663                | 10.183.253.16 (SERVICENET)       |
+  | Cluster                | ztm-n02.lbaas.ord1.rackspace.net |
+  | Source IPv4            | 184.106.100.22                   |
+  | Source IPv4 ServiceNet | 10.183.252.22                    |
+  | Source IPv6            | 2001:4801:7901::3/64             |
+  | Node 0                 | 10.5.5.5:444 / ENABLED / ONLINE  |
+  | Node 1                 | 10.7.7.7:80 / ENABLED / ONLINE   |
+  | Node 2                 | 10.8.8.8:8080 / ENABLED / ONLINE |
+  | Node 3                 | 10.4.4.4:444 / ENABLED / ONLINE  |
+  | Node 4                 | 10.6.6.6:80 / ENABLED / ONLINE   |
+  | Session Persistence    | None                             |
+  | Connection Logging     | False                            |
+  | Created                | 2011-03-28 15:50:56              |
+  | Updated                | 2011-03-28 21:15:07              |
   +---------------------+----------------------------------+
 
 List load balancer usage::

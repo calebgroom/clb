@@ -275,6 +275,12 @@ class CloudloadbalancersShell(object):
             ip = lb.virtualIps[i]
             vstr = '%s (%s)' % (ip.address, ip.type)
             rows.append(['VIP ' + str(ip.id), vstr])
+
+        rows.append(['Cluster', lb.cluster])
+        rows.append(['Source IPv4', lb.sourceAddresses['ipv4Public']])
+        rows.append(['Source IPv4 ServiceNet', lb.sourceAddresses['ipv4Servicenet']])
+        rows.append(['Source IPv6', lb.sourceAddresses['ipv6Public']])
+
 	# Sort nodes by IP address
 	lb.nodes = sorted(lb.nodes, key=lambda node: socket.inet_aton(node.address))
         for i in range(len(lb.nodes)):
@@ -296,7 +302,6 @@ class CloudloadbalancersShell(object):
             rows.append(['ACL %d' % (acls[i].id), '%s from %s' % (acls[i].type, acls[i].address)])
 
         rows.append(['Connection Logging', lb.connection_logging().get()])
-        rows.append(['Cluster', lb.cluster])
         rows.append(['Created', lb.created])
         rows.append(['Updated', lb.updated])
  
