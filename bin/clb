@@ -250,15 +250,6 @@ class CloudloadbalancersShell(object):
             if len(lbs) >= 5: time.sleep(.2)
         print_list2(fields, rows, args.batch, args.delimiter)
 
-    def do_list_deleted(self, args):
-        """List deleted load balancers."""
-        fields = ['Name', 'ID']
-        rows = []
-        lbs = self.clb.loadbalancers.list_deleted()
-        for lb in lbs:
-            rows.append([lb.name, lb.id])
-        print_list2(fields, rows, args.batch, args.delimiter)
-
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     def do_show(self, args):
         """List details of a specific load balancer."""
