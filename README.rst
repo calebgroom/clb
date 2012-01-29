@@ -122,7 +122,20 @@ List load balancer details::
 
 List load balancer usage::
 
- $ clb show-usage mylb
+  $ clb show-usage mylb
+  +--------------------------+---------------------+
+  |          Field           |        Value        |
+  +--------------------------+---------------------+
+  | VIP Type:                | PUBLIC              |
+  | Start Time               | 2011-11-01 05:02:25 |
+  | End Time                 | 2012-01-29 15:57:26 |
+  | Incoming Tranfer (bytes) | 7658                |
+  | Outgoing Tranfer (bytes) | 0                   |
+  +--------------------------+---------------------+
+
+List all load balancer usage records::
+
+ $ clb show-all-usage mylb
  +-----------------------+---------------------+
  |        Property       |        Value        |
  +-----------------------+---------------------+

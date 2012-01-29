@@ -299,11 +299,39 @@ class CloudloadbalancersShell(object):
         print_list2(fields, rows, args.batch, args.delimiter)
 
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
-    def do_show_usage(self, args):
-        """Display load balancer usage.""" 
+    def do_show_all_usage(self, args):
+        """Display all load balancer usage records.""" 
         lb = self.findlb(args.loadbalancer) 
         for u in lb.get_usage():
             print_dict(u)
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    def do_show_usage(self, args):
+        """Display load balancer usage.""" 
+        lb = self.findlb(args.loadbalancer) 
+        usage = lb.get_usage()
+        output = {}
+        for u in usage:
+            v = u['vipType']
+            if v not in output.keys():
+                output[v] = {'startTime': datetime.now(), 'endTime': datetime(1970, 1, 1), 'outgoingTransfer': 0, 'incomingTransfer': 0}
+
+            if u['startTime'] < output[v]['startTime']:
+                output[v]['startTime'] = u['startTime']
+            if u['endTime'] > output[v]['endTime']:
+                output[v]['endTime'] = u['endTime']
+            output[v]['outgoingTransfer'] += u['outgoingTransfer']
+            output[v]['incomingTransfer'] += u['incomingTransfer']
+
+        fields = ['Field', 'Value']
+        rows = []
+        for k in output.keys():
+            rows.append(['VIP Type:', k])
+            rows.append(['Start Time', output[k]['startTime']])
+            rows.append(['End Time', output[k]['endTime']])
+            rows.append(['Incoming Tranfer (bytes)',output[k]['incomingTransfer']])
+            rows.append(['Outgoing Tranfer (bytes)',output[k]['outgoingTransfer']])
+            print_list2(fields, rows, args.batch, args.delimiter)
 
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     @arg('name', metavar='<name>', help="New load balancer name.")
