@@ -340,6 +340,13 @@ class CloudloadbalancersShell(object):
             print_list2(fields, rows, args.batch, args.delimiter)
 
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    def do_show_errorpage(self,args):
+        """Display the error page HTML."""
+        lb = self.findlb(args.loadbalancer)
+        ep = lb.errorpage()
+        print ep.get() 
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     @arg('name', metavar='<name>', help="New load balancer name.")
     def do_rename(self,args):
         """Rename an existing load balancer."""
@@ -370,6 +377,14 @@ class CloudloadbalancersShell(object):
         lb = self.findlb(args.loadbalancer) 
         lb.port = int(args.port)
         lb.update()
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('html', metavar='<html>', help="HTML for error page.")
+    def do_change_errorpage(self,args):
+        """Change the error page HTML for an existing load balancer."""
+        lb = self.findlb(args.loadbalancer)
+        ep = lb.errorpage()
+        ep.add(args.html) 
 
     # Node operations
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')

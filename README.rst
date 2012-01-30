@@ -120,6 +120,11 @@ List load balancer details::
   | Updated                | 2011-03-28 21:15:07              |
   +---------------------+----------------------------------+
 
+Show HTML error page::
+
+  $ clb show-errorpage mylb
+  <html><h1>oh noes!</h1></html>
+
 List load balancer usage::
 
   $ clb show-stats mylb
@@ -211,6 +216,12 @@ Change the algorithm of a load balancer.  Specify the full algorithm name or the
 +--------------+----------------------------+
 | wrr          | WEIGHTED_ROUND_ROBIN       |
 +--------------+----------------------------+
+
+Change the HTML error page that is displayed when no nodes are available.  
+This only is used for HTTP protocols.  If the protocol of a load balancer is
+changed to a non-HTTP protocol, the default error page will be restored.::
+
+  $ clb change-errorpage mylb '<html><h1>oh noes!</h1></html>'
 
 Add nodes to a load balancer::
 
