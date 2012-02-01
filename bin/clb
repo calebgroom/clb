@@ -28,6 +28,41 @@ class CommandError(Exception):
 def env(e):
     return os.environ.get(e, '')
 
+def friendly_time(dt, past_="ago", future_="from now", default="just now"):
+    """
+    Returns string representing "time since"
+    or "time until" e.g.
+    3 days ago, 5 hours from now etc.
+    Taken from http://flask.pocoo.org/snippets/33/
+    """
+
+    now = datetime.utcnow()
+    if now > dt:
+        diff = now - dt
+        dt_is_past = True
+    else:
+        diff = dt - now
+        dt_is_past = False
+
+    periods = (
+        (diff.days / 365, "year", "years"),
+        (diff.days / 30, "month", "months"),
+        (diff.days / 7, "week", "weeks"),
+        (diff.days, "day", "days"),
+        (diff.seconds / 3600, "hour", "hours"),
+        (diff.seconds / 60, "minute", "minutes"),
+        (diff.seconds, "second", "seconds"),
+    )
+
+    for period, singular, plural in periods:
+        
+        if period:
+            return "%d %s %s" % (period, \
+                singular if period == 1 else plural, \
+                past_ if dt_is_past else future_)
+
+    return default
+
 class CloudloadbalancersShell(object):
 
     # Hook for the test suite to inject a fake load balancer.
@@ -234,7 +269,7 @@ class CloudloadbalancersShell(object):
 
     def do_list(self, args):
         """List active load balancers."""
-        fields = ['ID', 'Name', 'Port', 'Protocol', 'Algorithm', 'Nodes', 'IPs']
+        fields = ['ID', 'Name', 'Age', 'Port', 'Protocol', 'Algorithm', 'Nodes', 'IPs']
         rows = []
         lbs = self.clb.loadbalancers.list()
         lbs.sort(key=lambda lb: lb.id)
@@ -243,9 +278,12 @@ class CloudloadbalancersShell(object):
             if hasattr(lb, 'virtualIps'):
                 for ip in lb.virtualIps:
                     ips.append("%s/%s" % (ip.ipVersion, ip.address))
-                rows.append([lb.id, lb.name, lb.port, lb.protocol, lb.algorithm, len(lb.nodes), csv_list(ips)])
+                rows.append([lb.id, lb.name, friendly_time(lb.created, 
+                    past_=''), lb.port, lb.protocol, lb.algorithm, 
+                    len(lb.nodes), csv_list(ips)])
             else:
-                rows.append([lb.id, lb.name, lb.port, lb.protocol, lb.algorithm, len(lb.nodes), ''])
+                rows.append([lb.id, lb.name, friendly_time(lb.created, past_=''), 
+                    lb.port, lb.protocol, lb.algorithm, len(lb.nodes), ''])
             # Throttle requests if there are more than 5 LBs
             if len(lbs) >= 5: time.sleep(.2)
         print_list2(fields, rows, args.batch, args.delimiter)
@@ -293,8 +331,8 @@ class CloudloadbalancersShell(object):
             rows.append(['ACL %d' % (acls[i].id), '%s from %s' % (acls[i].type, acls[i].address)])
 
         rows.append(['Connection Logging', lb.connection_logging().get()])
-        rows.append(['Created', lb.created])
-        rows.append(['Updated', lb.updated])
+        rows.append(['Created', '%s (%s)' % (lb.created, friendly_time(lb.created))])
+        rows.append(['Updated', '%s (%s)' % (lb.updated, friendly_time(lb.updated))])
  
         print_list2(fields, rows, args.batch, args.delimiter)
 
