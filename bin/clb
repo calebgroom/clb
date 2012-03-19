@@ -424,6 +424,24 @@ class CloudloadbalancersShell(object):
         ep = lb.errorpage()
         ep.add(args.html) 
 
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('port', metavar='<port>', help='Port that SSL should be listening on.')
+    @arg('privatekey', metavar='<private key>', help='File containing SSL Private Key.')
+    @arg('certificate', metavar='<certificate>', help='File containing SSL Certificate.')
+    @arg('intermediate', metavar='[Intermediate Certificate]', help='File containing SSL Certificate Chain/Intermediate Certificate Authority.', default=None)
+    @arg('--disable', action='store_true', help='Stop SSL Termination Shadow Server (default: %(default)s)', default=False)
+    @arg('--secureonly', action='store_true', help='Make LB only listen on Secure Port (default: %(default)s)', default=False)
+    def do_add_ssltermination(self, args):
+        lb = self.findlb(args.loadbalancer)
+        sslt = lb.ssl_termination()
+        sslt.add(args.port, args.privatekey, args.certificate, args.intermediate, not args.disable, args.secureonly)
+
+    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    def do_delete_ssltermination(self, args):
+        lb = self.findlb(args.loadbalancer)
+        sslt = lb.ssl_termination()
+        sslt.delete()    
+
     # Node operations
     @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
     @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.  Ex. "10.1.1.1:80,10.2.2.2:80".')
