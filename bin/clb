@@ -341,13 +341,19 @@ class CloudloadbalancersShell(object):
             if sslt == None:
                 rows.append(['SSL Termination', 'Not Configured'])
             elif sslt.enabled and not sslt.secureonly:
-                rows.append(['SSL Termination', 'Running on Port %s' % (sslt.port)])
+                rows.append(['SSL Termination', 'Running on Port %s' %
+                    (sslt.port)])
             elif sslt.enabled and sslt.secureonly:
-                rows.append(['SSL Termination', 'Running on Port %s and port %s is closed' % (sslt.port, lb.port)])
+                rows.append(['SSL Termination',
+                    'Running on Port %s and port %s is closed' %
+                    (sslt.port, lb.port)])
             elif not sslt.enabled and not sslt.secureonly:
-                rows.append(['SSL Termination', 'Disabled for Port %s' % (sslt.port)])
+                rows.append(['SSL Termination', 'Disabled for Port %s' %
+                    (sslt.port)])
             else:
-                rows.append(['SSL Termination', 'Disabled for Port %s, will close port %s when enabled' % (sslt.port, lb.port)])
+                rows.append(['SSL Termination',
+                    'Disabled for Port %s, will close port %s when enabled' %
+                    (sslt.port, lb.port)])
 
         rows.append(['Cluster', lb.cluster])
         rows.append(['Source IPv4', lb.sourceAddresses['ipv4Public']])
@@ -494,13 +500,23 @@ class CloudloadbalancersShell(object):
         ep = lb.errorpage()
         ep.add(args.html)
 
-    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
-    @arg('port', metavar='<port>', help='Port that SSL should be listening on.')
-    @arg('privatekey', metavar='<private key>', help='File containing SSL Private Key.')
-    @arg('certificate', metavar='<certificate>', help='File containing SSL Certificate.')
-    @arg('--intermediate', metavar='Intermediate Certificate', help='File containing SSL Certificate Chain/Intermediate Certificate Authority.', default=None)
-    @arg('--disable', action='store_true', help='Stop SSL Termination Shadow Server (default: %(default)s)', default=False)
-    @arg('--secureonly', action='store_true', help='Make LB only listen on Secure Port (default: %(default)s)', default=False)
+    @arg('loadbalancer', metavar='<loadbalancer>',
+            help='Name or ID of load balancer.')
+    @arg('port', metavar='<port>',
+            help='Port that SSL should be listening on.')
+    @arg('privatekey', metavar='<private key>',
+            help='File containing SSL Private Key.')
+    @arg('certificate', metavar='<certificate>',
+            help='File containing SSL Certificate.')
+    @arg('--intermediate', metavar='Intermediate Certificate',
+            help='File containing SSL Certificate Chain/' +
+            'Intermediate Certificate Authority.', default=None)
+    @arg('--disable', action='store_true',
+            help='Stop SSL Termination Shadow Server (default: %(default)s)',
+            default=False)
+    @arg('--secureonly', action='store_true',
+            help='Make LB only listen on Secure Port (default: %(default)s)',
+            default=False)
     def do_add_ssltermination(self, args):
         """Setup SSL Termination on a Load Balancer"""
         lb = self.findlb(args.loadbalancer)
@@ -516,12 +532,13 @@ class CloudloadbalancersShell(object):
             ca = None
         sslt.add(args.port, key, crt, ca, not args.disable, args.secureonly)
 
-    @arg('loadbalancer', metavar='<loadbalancer>', help='Name or ID of load balancer.')
+    @arg('loadbalancer', metavar='<loadbalancer>',
+            help='Name or ID of load balancer.')
     def do_delete_ssltermination(self, args):
         """Remove SSL Termination on a Load Balancer"""
         lb = self.findlb(args.loadbalancer)
         sslt = lb.ssl_termination()
-        sslt.delete()    
+        sslt.delete()
 
     # Node operations
     @arg('loadbalancer', metavar='<loadbalancer>',
