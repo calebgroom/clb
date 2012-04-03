@@ -5,6 +5,7 @@
 :Homepage:  https://github.com/calebgroom/clb
 :Credits:   Copyright 2011 Caleb Groom <caleb@calebgroom.com>
 :Licence:   BSD
+:Build Status: .. image:: https://secure.travis-ci.org/calebgroom/clb.png?branch=master 
 
 Install
 ====

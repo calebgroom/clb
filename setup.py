@@ -7,7 +7,9 @@ from setuptools import setup, find_packages
 NAME = "clb"
 GITHUB_URL = "https://github.com/calebgroom/%s" % (NAME)
 DESCRIPTION = "Command-line tool for Rackspace Load Balancers"
-VERSION="0.0.1"
+VERSION = "0.0.1"
+
+
 def read(fname):
     full_path = os.path.join(os.path.dirname(__file__), fname)
     if os.path.exists(fname):
@@ -30,8 +32,7 @@ setup(name=NAME,
       zip_safe=False,
       scripts=['bin/clb'],
       packages=find_packages(exclude=['tests', 'debian']),
-      install_requires = requirements,
-      dependency_links = ['https://github.com/rackspace/python-cloudlb/tarball/master#egg=python-cloudlb'],
+      install_requires=requirements,
       tests_require=["nose"],
       test_suite="nose.collector",
       classifiers=[
