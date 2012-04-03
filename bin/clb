@@ -509,7 +509,7 @@ class CloudloadbalancersShell(object):
     @arg('certificate', metavar='<certificate>',
             help='File containing SSL Certificate.')
     @arg('--intermediate', metavar='Intermediate Certificate',
-            help='File containing SSL Certificate Chain/' +
+            help='File containing SSL Certificate Chain/' \
             'Intermediate Certificate Authority.', default=None)
     @arg('--disable', action='store_true',
             help='Stop SSL Termination Shadow Server (default: %(default)s)',
