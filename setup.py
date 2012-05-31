@@ -17,7 +17,7 @@ def read(fname):
     else:
         return ""
 
-requirements = ['python-cloudlb', 'httplib2', 'argparse', 'prettytable']
+requirements = ['python-cloudlb', 'httplib2', 'argparse', 'prettytable == 0.5']
 
 setup(name=NAME,
       version=VERSION,
