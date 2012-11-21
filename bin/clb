@@ -636,7 +636,10 @@ class CloudloadbalancersShell(object):
             if m.type in ['HTTP', 'HTTPS']:
                 rows.append(['Path', m.path])
                 rows.append(['Status Regex', m.statusRegex])
-                rows.append(['Body Regex', m.bodyRegex])
+                try:
+                    rows.append(['Body Regex', m.bodyRegex])
+                except:
+                    rows.append(['Body Regex', 'None'])
 
             print_list2(fields, rows, args.batch, args.delimiter)
 
