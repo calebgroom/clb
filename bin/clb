@@ -191,6 +191,28 @@ class CloudloadbalancersShell(object):
                                                       'authtoken')
                 self.clb.client.region_account_url = conf.get('connection',
                                                               'regionurl')
+                """
+                Normalize region name so we can detect when it is
+                different from the one implied in the cached 
+                region_account_url.
+                """
+                if region.lower() == 'london':
+                    region = 'lon'
+                elif region.lower() == 'dallas':
+                    region = 'dfw'
+                elif region.lower() == 'chicago':
+                    region = 'ord'
+
+                if region.lower() not in \
+                   self.clb.client.region_account_url.lower():
+                    """
+                    Do not use cached credentials
+                    if user-provided region differs from region
+                    in cached region_account_url
+                    """
+                    reused_authkey = False
+                    self.clb.client.auth_token = None
+                    self.clb.client.region_account_url = None
 
         try:
             args.func(args)
