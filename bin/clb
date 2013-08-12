@@ -202,6 +202,10 @@ class CloudloadbalancersShell(object):
                     region = 'dfw'
                 elif region.lower() == 'chicago':
                     region = 'ord'
+		elif region.lower() == 'ashburn':
+                    region = 'iad'
+                elif region.lower() == 'sydney':
+                    region = 'syd'
 
                 if region.lower() not in \
                    self.clb.client.region_account_url.lower():
