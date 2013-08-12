@@ -202,7 +202,7 @@ class CloudloadbalancersShell(object):
                     region = 'dfw'
                 elif region.lower() == 'chicago':
                     region = 'ord'
-		elif region.lower() == 'ashburn':
+                elif region.lower() == 'ashburn':
                     region = 'iad'
                 elif region.lower() == 'sydney':
                     region = 'syd'
