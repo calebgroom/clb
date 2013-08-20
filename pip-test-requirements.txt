@@ -1,0 +1,14 @@
+# Use pip to install these requirements before running tests:
+# pip install -r pip-test-requirements.txt
+
+coverage
+# Latest versions of pyflakes and pep8 break flake8.
+# Freezing versions until flake8 catches up
+pyflakes==0.7.2
+pep8==1.4.5
+flake8
+hacking  # plugins for enforcement of HACKING.rst
+mock
+pylint==0.28.0
+nose
+virtualenv
