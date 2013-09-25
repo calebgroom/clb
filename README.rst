@@ -5,7 +5,7 @@
 :Homepage:  https://github.com/calebgroom/clb
 :Credits:   Copyright 2011 Caleb Groom <caleb@calebgroom.com>
 :Licence:   BSD
-:Build Status: .. image:: https://secure.travis-ci.org/calebgroom/clb.png?branch=master 
+:Build Status: .. image:: https://secure.travis-ci.org/calebgroom/clb.png?branch=master
 
 Install
 ====
@@ -35,7 +35,7 @@ Rackspace Cloud credentials can be specified on the command line or stored in yo
 
  $ clb --username myusername --apikey abcdefg --region chicago list
 
-The following examples assume the credentials are stored in your user's environment. 
+The following examples assume the credentials are stored in your user's environment.
 
 Output
 =====
@@ -201,8 +201,8 @@ Change the protocol of a load balancer::
 Change the algorithm of a load balancer.  Specify the full algorithm name or the abbreviation.::
 
  $ clb change-algorithm wlc
- $ clb change-algoritm WEIGHTED_LEAST_CONNECTIONS
- $ clb change-algoritm random
+ $ clb change-algorithm WEIGHTED_LEAST_CONNECTIONS
+ $ clb change-algorithm random
 
 +--------------+----------------------------+
 | Abbreviation | Algorithm                  |
@@ -218,7 +218,7 @@ Change the algorithm of a load balancer.  Specify the full algorithm name or the
 | wrr          | WEIGHTED_ROUND_ROBIN       |
 +--------------+----------------------------+
 
-Change the HTML error page that is displayed when no nodes are available.  
+Change the HTML error page that is displayed when no nodes are available.
 This only is used for HTTP protocols.  If the protocol of a load balancer is
 changed to a non-HTTP protocol, the default error page will be restored.::
 
