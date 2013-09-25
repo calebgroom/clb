@@ -198,6 +198,11 @@ Change the protocol of a load balancer::
 
  $ clb change-protocol mylb FTP
 
+Change the timeout of a load balancer. The default value is 30 seconds. The
+maximum value that you can supply is 120 seconds.::
+
+ $ clb change-timeout mylb 60
+
 Change the algorithm of a load balancer.  Specify the full algorithm name or the abbreviation.::
 
  $ clb change-algorithm wlc
