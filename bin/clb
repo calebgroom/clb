@@ -520,6 +520,15 @@ class CloudloadbalancersShell(object):
 
     @arg('loadbalancer', metavar='<loadbalancer>',
          help='Name or ID of load balancer.')
+    @arg('timeout', metavar='<timeout>', help="Timeout (in seconds).")
+    def do_change_timeout(self, args):
+        """Change the timeout of an existing load balancer. Max allowed is 120 seconds."""
+        lb = self.findlb(args.loadbalancer)
+        lb.timeout = int(args.timeout)
+        lb.update()
+
+    @arg('loadbalancer', metavar='<loadbalancer>',
+         help='Name or ID of load balancer.')
     @arg('html', metavar='<html>', help="HTML for error page.")
     def do_change_errorpage(self, args):
         """Change the error page HTML for an existing load balancer."""
