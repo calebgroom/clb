@@ -193,7 +193,7 @@ class CloudloadbalancersShell(object):
                                                               'regionurl')
                 """
                 Normalize region name so we can detect when it is
-                different from the one implied in the cached 
+                different from the one implied in the cached
                 region_account_url.
                 """
                 if region.lower() == 'london':
@@ -358,6 +358,7 @@ class CloudloadbalancersShell(object):
         rows.append(['Port', lb.port])
         rows.append(['Protocol', lb.protocol])
         rows.append(['Algorithm', lb.algorithm])
+        rows.append(['Timeout', lb.timeout])
         for i in range(len(lb.virtualIps)):
             ip = lb.virtualIps[i]
             vstr = '%s (%s)' % (ip.address, ip.type)
