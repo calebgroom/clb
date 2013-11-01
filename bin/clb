@@ -389,8 +389,11 @@ class CloudloadbalancersShell(object):
         rows.append(['Source IPv6', lb.sourceAddresses['ipv6Public']])
 
         # Sort nodes by IP address
-        lb.nodes = sorted(lb.nodes,
+        if hasattr(lb, 'nodes'):
+            lb.nodes = sorted(lb.nodes,
                           key=lambda node: socket.inet_aton(node.address))
+        else:
+            lb.nodes = [ ]
         for i in range(len(lb.nodes)):
             node = lb.nodes[i]
             if node.weight is not None:
