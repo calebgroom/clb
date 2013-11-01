@@ -42,6 +42,7 @@ def friendly_time(dt, past_="ago", future_="from now", default="just now"):
     """
 
     now = datetime.utcnow()
+    dt = dt.replace(tzinfo=None)
     if now > dt:
         diff = now - dt
         dt_is_past = True
@@ -334,7 +335,7 @@ class CloudloadbalancersShell(object):
                     ips.append("%s/%s" % (ip.ipVersion, ip.address))
                 rows.append([lb.id, lb.name, friendly_time(lb.created,
                     past_=''), lb.port, lb.protocol, lb.algorithm,
-                    len(lb.nodes), csv_list(ips)])
+                    0 if not hasattr( lb, 'nodes' ) else len(lb.nodes), csv_list(ips)])
             else:
                 rows.append([lb.id, lb.name,
                              friendly_time(lb.created, past_=''),
