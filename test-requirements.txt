@@ -1,0 +1,11 @@
+# maintain order of these two so that version dependencies don't break
+hacking==0.8.0
+pylint==1.0.0
+
+# Alphabetical
+mock==1.0.1
+nose==1.3.0
+
+# From OpenStack cookiecutter
+# https://github.com/openstack-dev/cookiecutter/
+testrepository>=0.0.17

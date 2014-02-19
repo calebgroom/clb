@@ -1,18 +1,20 @@
 #!/usr/bin/env python
-import cloudlb
-import cloudlb.errors
+
+from __future__ import print_function
+
 import argparse
+import datetime
+import httplib2
 import os
-import os.path
-import prettytable
 import socket
 import sys
-import textwrap
-import httplib2
 import time
 import types
+
+import cloudlb
+import cloudlb.errors
 import ConfigParser
-from datetime import datetime, timedelta
+import prettytable
 
 
 # Decorator for args
@@ -34,10 +36,9 @@ def env(e):
 
 
 def friendly_time(dt, past_="ago", future_="from now", default="just now"):
-    """
-    Returns string representing "time since"
-    or "time until" e.g.
-    3 days ago, 5 hours from now etc.
+    """Returns string representing "time since" or "time until".
+
+    e.g. 3 days ago, 5 hours from now etc.
     Taken from http://flask.pocoo.org/snippets/33/
     """
 
@@ -62,9 +63,11 @@ def friendly_time(dt, past_="ago", future_="from now", default="just now"):
 
     for period, singular, plural in periods:
         if period:
-            return "%d %s %s" % (period, \
-                singular if period == 1 else plural, \
-                past_ if dt_is_past else future_)
+            return "%d %s %s" % (
+                period,
+                singular if period == 1 else plural,
+                past_ if dt_is_past else future_
+            )
 
     return default
 
@@ -84,40 +87,48 @@ class CloudloadbalancersShell(object):
         )
 
         # Global arguments
-        self.parser.add_argument('-h', '--help',
+        self.parser.add_argument(
+            '-h', '--help',
             action='help',
             help=argparse.SUPPRESS)
 
-        self.parser.add_argument('--debug',
+        self.parser.add_argument(
+            '--debug',
             default=False,
             action='store_true',
             help=argparse.SUPPRESS)
 
-        self.parser.add_argument('-b', '--batch',
+        self.parser.add_argument(
+            '-b', '--batch',
             default=False,
             action='store_true',
             help='Use batch mode for output that can be parsed.')
 
-        self.parser.add_argument('--delimiter',
+        self.parser.add_argument(
+            '--delimiter',
             default=',',
             action='store',
             help='Specify the delimiter for batch mode.  Defaults to ","')
 
-        self.parser.add_argument('--username',
-            default=env('CLOUD_LOADBALANCERS_USERNAME') or \
-                    env('CLOUD_SERVERS_USERNAME'),
-            help='Defaults to env[CLOUD_LOADBALANCERS_USERNAME] or ' \
-                  'env[CLOUD_SERVERS_USERNAME].')
+        self.parser.add_argument(
+            '--username',
+            default=env('CLOUD_LOADBALANCERS_USERNAME'),
+            help='Defaults to env[CLOUD_LOADBALANCERS_USERNAME] or '
+                 'env[CLOUD_SERVERS_USERNAME].'
+        )
 
-        self.parser.add_argument('--apikey',
-            default=env('CLOUD_LOADBALANCERS_API_KEY') or \
-                     env('CLOUD_SERVERS_API_KEY'),
-            help='Defaults to env[CLOUD_LOADBALANCERS_API_KEY] or ' \
-                 'env[CLOUD_SERVERS_API_KEY].')
+        self.parser.add_argument(
+            '--apikey',
+            default=env('CLOUD_LOADBALANCERS_API_KEY'),
+            help='Defaults to env[CLOUD_LOADBALANCERS_API_KEY] or '
+                 'env[CLOUD_SERVERS_API_KEY].'
+        )
 
-        self.parser.add_argument('--region',
+        self.parser.add_argument(
+            '--region',
             default=env('CLOUD_LOADBALANCERS_REGION'),
-            help='Defaults to env[CLOUD_LOADBALANCERS_REGION].')
+            help='Defaults to env[CLOUD_LOADBALANCERS_REGION].'
+        )
 
         # Subcommands
         subparsers = self.parser.add_subparsers(metavar='<subcommand>')
@@ -131,13 +142,15 @@ class CloudloadbalancersShell(object):
             desc = callback.__doc__ or ''
             help = desc.strip().split('\n')[0]
             arguments = getattr(callback, 'arguments', [])
-            subparser = subparsers.add_parser(command,
+            subparser = subparsers.add_parser(
+                command,
                 help=help,
                 description=desc,
                 add_help=False,
                 formatter_class=CloudloadbalancersHelpFormatter
             )
-            subparser.add_argument('-h', '--help',
+            subparser.add_argument(
+                '-h', '--help',
                 action='help',
                 help=argparse.SUPPRESS,
             )
@@ -169,9 +182,10 @@ class CloudloadbalancersShell(object):
                                "--apikey or via env[CLOUD_SERVERS_API_KEY]")
 
         if not region:
-            raise CommandError('You must provide a region location, ' \
-                               'either via --region or via ' \
-                               'env[CLOUD_LOADBALANCERS_REGION]')
+            raise CommandError(
+                'You must provide a region location, either via --region or '
+                'via env[CLOUD_LOADBALANCERS_REGION]'
+            )
 
         self.clb = self._api_class(user, apikey, region)
 
@@ -186,7 +200,7 @@ class CloudloadbalancersShell(object):
             now = datetime.now()
             duration = now - then
             if duration.days < 1 and user == conf.get('connection',
-                                                        'username'):
+                                                      'username'):
                 reused_authkey = True
                 self.clb.client.auth_token = conf.get('connection',
                                                       'authtoken')
@@ -229,8 +243,9 @@ class CloudloadbalancersShell(object):
                 self.clb.client.region_account_url = None
                 args.func(args)
             else:
-                print >> sys.stderr, "ERROR: API error %d. %s" % (e.status,
-                                                                  e.reason)
+                print(
+                    "ERROR: API error %d. %s" % (e.status, e.reason),
+                    file=sys.stderr)
 
         with open(configfilename, 'wb') as configfile:
             configwriter = ConfigParser.RawConfigParser()
@@ -244,19 +259,20 @@ class CloudloadbalancersShell(object):
             configwriter.set('connection', 'timestamp',
                              datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
             configwriter.write(configfile)
-            os.chmod(configfilename, 0600)
+            os.chmod(configfilename, 0o600)
 
     def findlb(self, lbstr, readonly=True):
         """Find a load balacer by name or id.
 
-        Optionally, delay until the load balancer can be modified."""
+        Optionally, delay until the load balancer can be modified.
+        """
         lb = self._lb_name_or_id(lbstr)
         if not readonly:
             lb = self._wait_for_modification(lb)
         return lb
 
     def _lb_name_or_id(self, lbstr):
-        """Determine if lbstr is a load balancer name or id"""
+        """Determine if lbstr is a load balancer name or id."""
         try:
             lb = self.clb.loadbalancers.get(int(lbstr))
         except ValueError:
@@ -277,9 +293,7 @@ class CloudloadbalancersShell(object):
     @arg('command', metavar='<subcommand>', nargs='?',
          help='Display help for <subcommand>')
     def do_help(self, args):
-        """
-        Display help about this program or one of its subcommands.
-        """
+        """Display help about this program or one of its subcommands."""
         if args.command:
             if args.command in self.subcommands:
                 self.subcommands[args.command].print_help()
@@ -293,11 +307,11 @@ class CloudloadbalancersShell(object):
     @arg('name', metavar='<name>', help='Name of load balancer.')
     @arg('port', metavar='<port>', help='Load balancer port number.')
     @arg('protocol', metavar='<protocol>', help='Load balancer protocol type.')
-    @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.' \
+    @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes.'
                                           ' Ex. "10.1.1.1:80,10.2.2.2:80".')
-    @arg('vip', metavar='<vip>', help='Virtual IP.  Either "public", ' \
-                                      '"servicenet", or ID of existing ' \
-                                      'VIP to share.')
+    @arg('vip', metavar='<vip>', help='Virtual IP.  Either "public", '
+                                      '"servicenet", or ID of existing VIP to '
+                                      'share.')
     def do_create(self, args):
         """Create new load balancer."""
         nodes = split_nodes(args.nodes)
@@ -333,9 +347,18 @@ class CloudloadbalancersShell(object):
             if hasattr(lb, 'virtualIps'):
                 for ip in lb.virtualIps:
                     ips.append("%s/%s" % (ip.ipVersion, ip.address))
-                rows.append([lb.id, lb.name, friendly_time(lb.created,
-                    past_=''), lb.port, lb.protocol, lb.algorithm,
-                    0 if not hasattr( lb, 'nodes' ) else len(lb.nodes), csv_list(ips)])
+                rows.append(
+                    [
+                        lb.id,
+                        lb.name,
+                        friendly_time(lb.created, past_=''),
+                        lb.port,
+                        lb.protocol,
+                        lb.algorithm,
+                        0 if not hasattr(lb, 'nodes') else len(lb.nodes),
+                        csv_list(ips)
+                    ]
+                )
             else:
                 rows.append([lb.id, lb.name,
                              friendly_time(lb.created, past_=''),
@@ -366,22 +389,28 @@ class CloudloadbalancersShell(object):
             rows.append(['VIP ' + str(ip.id), vstr])
         if lb.protocol == 'HTTP':
             sslt = lb.ssl_termination().get()
-            if sslt == None:
+            if sslt is None:
                 rows.append(['SSL Termination', 'Not Configured'])
             elif sslt.enabled and not sslt.secureonly:
-                rows.append(['SSL Termination', 'Running on Port %s' %
-                    (sslt.port)])
+                rows.append(
+                    ['SSL Termination', 'Running on Port %s' % (sslt.port)]
+                )
             elif sslt.enabled and sslt.secureonly:
-                rows.append(['SSL Termination',
-                    'Running on Port %s and port %s is closed' %
-                    (sslt.port, lb.port)])
+                rows.append([
+                    'SSL Termination',
+                    'Running on Port %s and port %s is closed' % (sslt.port,
+                                                                  lb.port)
+                ])
             elif not sslt.enabled and not sslt.secureonly:
-                rows.append(['SSL Termination', 'Disabled for Port %s' %
-                    (sslt.port)])
+                rows.append([
+                    'SSL Termination', 'Disabled for Port %s' % sslt.port
+                ])
             else:
-                rows.append(['SSL Termination',
-                    'Disabled for Port %s, will close port %s when enabled' %
-                    (sslt.port, lb.port)])
+                rows.append([
+                    'SSL Termination',
+                    'Disabled for Port %s, will close port %s when enabled' % (
+                        sslt.port, lb.port)
+                ])
 
         rows.append(['Cluster', lb.cluster])
         rows.append(['Source IPv4', lb.sourceAddresses['ipv4Public']])
@@ -391,10 +420,10 @@ class CloudloadbalancersShell(object):
 
         # Sort nodes by IP address
         if hasattr(lb, 'nodes'):
-            lb.nodes = sorted(lb.nodes,
-                          key=lambda node: socket.inet_aton(node.address))
+            lb.nodes = sorted(
+                lb.nodes, key=lambda node: socket.inet_aton(node.address))
         else:
-            lb.nodes = [ ]
+            lb.nodes = []
         for i in range(len(lb.nodes)):
             node = lb.nodes[i]
             if node.weight is not None:
@@ -483,7 +512,7 @@ class CloudloadbalancersShell(object):
         """Display the error page HTML."""
         lb = self.findlb(args.loadbalancer)
         ep = lb.errorpage()
-        print ep.get()
+        print(ep.get())
 
     @arg('loadbalancer', metavar='<loadbalancer>',
          help='Name or ID of load balancer.')
@@ -526,7 +555,7 @@ class CloudloadbalancersShell(object):
          help='Name or ID of load balancer.')
     @arg('timeout', metavar='<timeout>', help="Timeout (in seconds).")
     def do_change_timeout(self, args):
-        """Change the timeout of an existing load balancer. Max allowed is 120 seconds."""
+        """Change the timeout of an existing load balancer."""
         lb = self.findlb(args.loadbalancer)
         lb.timeout = int(args.timeout)
         lb.update()
@@ -541,22 +570,23 @@ class CloudloadbalancersShell(object):
         ep.add(args.html)
 
     @arg('loadbalancer', metavar='<loadbalancer>',
-            help='Name or ID of load balancer.')
+         help='Name or ID of load balancer.')
     @arg('port', metavar='<port>',
-            help='Port that SSL should be listening on.')
+         help='Port that SSL should be listening on.')
     @arg('privatekey', metavar='<private key>',
-            help='File containing SSL Private Key.')
+         help='File containing SSL Private Key.')
     @arg('certificate', metavar='<certificate>',
-            help='File containing SSL Certificate.')
+         help='File containing SSL Certificate.')
     @arg('--intermediate', metavar='Intermediate Certificate',
-            help='File containing SSL Certificate Chain/' \
-            'Intermediate Certificate Authority.', default=None)
+         help='File containing SSL Certificate Chain/'
+              'Intermediate Certificate Authority.',
+         default=None)
     @arg('--disable', action='store_true',
-            help='Stop SSL Termination Shadow Server (default: %(default)s)',
-            default=False)
+         help='Stop SSL Termination Shadow Server (default: %(default)s)',
+         default=False)
     @arg('--secureonly', action='store_true',
-            help='Make LB only listen on Secure Port (default: %(default)s)',
-            default=False)
+         help='Make LB only listen on Secure Port (default: %(default)s)',
+         default=False)
     def do_add_ssltermination(self, args):
         """Setup SSL Termination on a Load Balancer"""
         lb = self.findlb(args.loadbalancer)
@@ -565,7 +595,7 @@ class CloudloadbalancersShell(object):
             key = f.read()
         with open(args.certificate, 'r') as f:
             crt = f.read()
-        if args.intermediate != None:
+        if args.intermediate is not None:
             with open(args.intermediate, 'r') as f:
                 ca = f.read()
         else:
@@ -573,7 +603,7 @@ class CloudloadbalancersShell(object):
         sslt.add(args.port, key, crt, ca, not args.disable, args.secureonly)
 
     @arg('loadbalancer', metavar='<loadbalancer>',
-            help='Name or ID of load balancer.')
+         help='Name or ID of load balancer.')
     def do_delete_ssltermination(self, args):
         """Remove SSL Termination on a Load Balancer"""
         lb = self.findlb(args.loadbalancer)
@@ -583,8 +613,9 @@ class CloudloadbalancersShell(object):
     # Node operations
     @arg('loadbalancer', metavar='<loadbalancer>',
          help='Name or ID of load balancer.')
-    @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes. ' \
-                                          'Ex. "10.1.1.1:80,10.2.2.2:80".')
+    @arg('nodes', metavar='<nodes>',
+         help='Comma separated list of nodes. '
+              'Ex. "10.1.1.1:80,10.2.2.2:80".')
     def do_add_nodes(self, args):
         """Add nodes to an existing load balancer."""
         lb = self.findlb(args.loadbalancer)
@@ -593,8 +624,8 @@ class CloudloadbalancersShell(object):
 
     @arg('loadbalancer', metavar='<loadbalancer>',
          help='Name or ID of load balancer.')
-    @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes. ' \
-                                          'Ex. "10.1.1.1:80,10.2.2.2:80".')
+    @arg('nodes', metavar='<nodes>',
+         help='Comma separated list of nodes. Ex. "10.1.1.1:80,10.2.2.2:80".')
     def do_remove_nodes(self, args):
         """Remove nodes from an existing load balancer."""
         node_strings = args.nodes.split(',')
@@ -605,7 +636,8 @@ class CloudloadbalancersShell(object):
     def _remove_nodes(self, lb, nodestr):
         """Find and delete a node given the string 'IP:port'.
 
-        Returns a load balancer that can be further modified."""
+        Returns a load balancer that can be further modified.
+        """
         for n in lb.nodes:
             destination = "%s:%d" % (n.address, n.port)
             if destination == nodestr:
@@ -614,8 +646,8 @@ class CloudloadbalancersShell(object):
 
     @arg('loadbalancer', metavar='<loadbalancer>',
          help='Name or ID of load balancer.')
-    @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes. ' \
-                                          'Ex. "10.1.1.1:80,10.2.2.2:80".')
+    @arg('nodes', metavar='<nodes>',
+         help='Comma separated list of nodes. Ex. "10.1.1.1:80,10.2.2.2:80".')
     @arg('weight', metavar='<weight>', help='Weight integer value.')
     def do_change_nodes_weight(self, args):
         """Set weight for existing nodes."""
@@ -629,8 +661,8 @@ class CloudloadbalancersShell(object):
 
     @arg('loadbalancer', metavar='<loadbalancer>',
          help='Name or ID of load balancer.')
-    @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes. ' \
-                                          'Ex. "10.1.1.1:80,10.2.2.2:80".')
+    @arg('nodes', metavar='<nodes>',
+         help='Comma separated list of nodes. Ex. "10.1.1.1:80,10.2.2.2:80".')
     def do_enable_nodes(self, args):
         """Enable existing nodes."""
         node_strings = args.nodes.split(',')
@@ -643,8 +675,8 @@ class CloudloadbalancersShell(object):
 
     @arg('loadbalancer', metavar='<loadbalancer>',
          help='Name or ID of load balancer.')
-    @arg('nodes', metavar='<nodes>', help='Comma separated list of nodes. ' \
-                                          'Ex. "10.1.1.1:80,10.2.2.2:80".')
+    @arg('nodes', metavar='<nodes>',
+         help='Comma separated list of nodes. Ex. "10.1.1.1:80,10.2.2.2:80".')
     def do_disable_nodes(self, args):
         """Disable existing nodes."""
         node_strings = args.nodes.split(',')
@@ -663,8 +695,8 @@ class CloudloadbalancersShell(object):
         lb = self.findlb(args.loadbalancer)
         monitor = lb.healthmonitor()
         m = monitor.get()
-        if m == None:
-            print "No monitor configured."
+        if m is None:
+            print("No monitor configured.")
         else:
             fields = ['Field', 'Value']
             rows = []
@@ -678,53 +710,50 @@ class CloudloadbalancersShell(object):
                 rows.append(['Status Regex', m.statusRegex])
                 try:
                     rows.append(['Body Regex', m.bodyRegex])
-                except:
+                except Exception:
                     rows.append(['Body Regex', 'None'])
 
             print_list2(fields, rows, args.batch, args.delimiter)
 
     @arg('loadbalancer', metavar='<loadbalancer>',
          help='Name or ID of load balancer.')
-    @arg('delay', metavar='<delay>', help='The minimum number of seconds ' \
-                                          'to wait before executing the ' \
-                                          'health monitor.')
-    @arg('timeout', metavar='<timeout>', help='Maximum number of seconds ' \
-                                              'to wait for a connection to ' \
-                                              'be established before timing ' \
-                                              'out.')
-    @arg('attempts', metavar='<attempts>', help='Number of permissible ' \
-                                                'monitor failures before ' \
-                                                'removing a node from ' \
-                                                'rotation.')
+    @arg('delay', metavar='<delay>',
+         help='The minimum number of seconds to wait before executing the '
+              'health monitor.')
+    @arg('timeout', metavar='<timeout>',
+         help='Maximum number of seconds to wait for a connection to be '
+              'established before timing out.')
+    @arg('attempts', metavar='<attempts>',
+         help='Number of permissible monitor failures before removing a node '
+              'from rotation.')
     def do_set_monitor_connect(self, args):
         """Set the monitor to TCP connect for an existing load balancer."""
         lb = self.findlb(args.loadbalancer)
         monitor = lb.healthmonitor()
         hm = cloudlb.healthmonitor.HealthMonitor(
-          type="CONNECT",
-          delay=int(args.delay),
-          timeout=int(args.timeout),
-          attemptsBeforeDeactivation=int(args.attempts))
+            type="CONNECT",
+            delay=int(args.delay),
+            timeout=int(args.timeout),
+            attemptsBeforeDeactivation=int(args.attempts)
+        )
         monitor.add(hm)
 
     @arg('loadbalancer', metavar='<loadbalancer>',
          help='Name or ID of load balancer.')
-    @arg('delay', metavar='<delay>', help='The minimum number of seconds ' \
-                                          'to wait before executing the ' \
-                                          'health monitor.')
-    @arg('timeout', metavar='<timeout>', help='Maximum number of seconds to ' \
-                                              'wait for a connection to be ' \
-                                              'established before timing out.')
-    @arg('attempts', metavar='<attempts>', help='Number of permissible ' \
-                                                'monitor failures before ' \
-                                                'removing a node from ' \
-                                                'rotation.')
-    @arg('path', metavar='<path>', help='The HTTP path that will be used ' \
-                                        'in the monitor request.')
-    @arg('status', metavar='<status>', help='A regular expression that will ' \
-                                            'be used to evaluate the HTTP ' \
-                                            'status code returned in the ' \
-                                            'response.')
+    @arg('delay', metavar='<delay>',
+         help='The minimum number of seconds to wait before executing the '
+              'health monitor.')
+    @arg('timeout', metavar='<timeout>',
+         help='Maximum number of seconds to wait for a connection to be '
+              'established before timing out.')
+    @arg('attempts', metavar='<attempts>',
+         help='Number of permissible monitor failures before removing a node '
+              'from rotation.')
+    @arg('path', metavar='<path>',
+         help='The HTTP path that will be used in the monitor request.')
+    @arg('status', metavar='<status>',
+         help='A regular expression that will be used to evaluate the HTTP '
+              'status code returned in the response.')
     @arg('body', metavar='<body>', help='')
     def do_set_monitor_http(self, args):
         """Set the monitor to HTTP for an existing load balancer."""
@@ -732,22 +761,20 @@ class CloudloadbalancersShell(object):
 
     @arg('loadbalancer', metavar='<loadbalancer>',
          help='Name or ID of load balancer.')
-    @arg('delay', metavar='<delay>', help='The minimum number of seconds ' \
-                                          'to wait before executing the ' \
-                                          'health monitor.')
-    @arg('timeout', metavar='<timeout>', help='Maximum number of seconds to ' \
-                                              'wait for a connection to be ' \
-                                              'established before timing out.')
-    @arg('attempts', metavar='<attempts>', help='Number of permissible ' \
-                                                'monitor failures before ' \
-                                                'removing a node from ' \
-                                                'rotation.')
-    @arg('path', metavar='<path>', help='The HTTP path that will be used ' \
-                                        'in the monitor request.')
-    @arg('status', metavar='<status>', help='A regular expression that will ' \
-                                            'be used to evaluate the HTTP ' \
-                                            'status code returned in the ' \
-                                            'response.')
+    @arg('delay', metavar='<delay>',
+         help='The minimum number of seconds to wait before executing the '
+              'health monitor.')
+    @arg('timeout', metavar='<timeout>',
+         help='Maximum number of seconds to wait for a connection to be '
+              'established before timing out.')
+    @arg('attempts', metavar='<attempts>',
+         help='Number of permissible monitor failures before removing a node '
+              'from rotation.')
+    @arg('path', metavar='<path>',
+         help='The HTTP path that will be used in the monitor request.')
+    @arg('status', metavar='<status>',
+         help='A regular expression that will be used to evaluate the HTTP '
+              'status code returned in the response.')
     @arg('body', metavar='<body>', help='')
     def do_set_monitor_https(self, args):
         """Set the monitor to HTTPS for an existing load balancer."""
@@ -762,13 +789,14 @@ class CloudloadbalancersShell(object):
             args.status = '^[234][0-9][0-9]$'
 
         hm = cloudlb.healthmonitor.HealthMonitor(
-          type=method,
-          delay=int(args.delay),
-          timeout=int(args.timeout),
-          attemptsBeforeDeactivation=int(args.attempts),
-          path=args.path,
-          statusRegex=args.status,
-          bodyRegex=args.body)
+            type=method,
+            delay=int(args.delay),
+            timeout=int(args.timeout),
+            attemptsBeforeDeactivation=int(args.attempts),
+            path=args.path,
+            statusRegex=args.status,
+            bodyRegex=args.body
+        )
         monitor.add(hm)
 
     @arg('loadbalancer', metavar='<loadbalancer>',
@@ -800,17 +828,17 @@ class CloudloadbalancersShell(object):
     @arg('loadbalancer', metavar='<loadbalancer>',
          help='Name or ID of load balancer.')
     def do_enable_persistence(self, args):
-        """Enable HTTP cookie session persistence"""
+        """Enable HTTP cookie session persistence."""
         lb = self.findlb(args.loadbalancer, readonly=False)
         ss = cloudlb.sessionpersistence.SessionPersistence(
-                 persistenceType="HTTP_COOKIE")
+            persistenceType="HTTP_COOKIE")
         ssp = lb.session_persistence()
         ssp.add(ss)
 
     @arg('loadbalancer', metavar='<loadbalancer>',
          help='Name or ID of load balancer.')
     def do_disable_persistence(self, args):
-        """Disable HTTP cookie session persistence"""
+        """Disable HTTP cookie session persistence."""
         lb = self.findlb(args.loadbalancer, readonly=False)
         ssp = lb.session_persistence()
         ssp.delete()
@@ -820,7 +848,7 @@ class CloudloadbalancersShell(object):
          help='Name or ID of load balancer.')
     @arg('method', metavar='<method>', help='Either allow or deny.')
     @arg('networks', metavar='<networks>',
-         help='Comma separated list of network ranges.  Ex: ' \
+         help='Comma separated list of network ranges.  Ex: '
               '\'192.168.1.0/24,10.10.10.1\'')
     def do_add_acls(self, args):
         """Add new ACL rule to allow or deny traffic."""
@@ -828,16 +856,17 @@ class CloudloadbalancersShell(object):
         networks = args.networks.split(',')
         accesslist = []
         for network in networks:
-            accesslist.append(cloudlb.accesslist.NetworkItem(
-                                                   address=network,
-                                                   type=args.method.upper()))
+            accesslist.append(
+                cloudlb.accesslist.NetworkItem(address=network,
+                                               type=args.method.upper())
+            )
         lb_acl = lb.accesslist()
         lb_acl.add(accesslist)
 
     @arg('loadbalancer', metavar='<loadbalancer>',
          help='Name or ID of load balancer.')
     @arg('aclids', metavar='<aclids>',
-         help='Comma separated list of ACL IDs.  IDs are displayed via ' \
+         help='Comma separated list of ACL IDs.  IDs are displayed via '
               ' the \'show\' command.')
     def do_remove_acls(self, args):
         """Remove an existing ACL rule."""
@@ -880,11 +909,13 @@ class CloudloadbalancersHelpFormatter(argparse.HelpFormatter):
 # Helper functions
 def algorithm_shorthand(algorithm):
     """Convert abbreviated algorithm names to the full version."""
-    shorthand = {'rr': 'ROUND_ROBIN',
-      'rand': 'RANDOM',
-      'lc': 'LEAST_CONNECTIONS',
-      'wlc': 'WEIGHTED_LEAST_CONNECTIONS',
-      'wrr': 'WEIGHTED_ROUND_ROBIN'}
+    shorthand = {
+        'rr': 'ROUND_ROBIN',
+        'rand': 'RANDOM',
+        'lc': 'LEAST_CONNECTIONS',
+        'wlc': 'WEIGHTED_LEAST_CONNECTIONS',
+        'wrr': 'WEIGHTED_ROUND_ROBIN'
+    }
     if algorithm in shorthand:
         return shorthand[algorithm]
     else:
@@ -892,7 +923,7 @@ def algorithm_shorthand(algorithm):
 
 
 def split_nodes(node_string):
-    """Split CSV string in IP:Port format into a list of Cloudlb.Nodes """
+    """Split CSV string in IP:Port format into a list of Cloudlb.Nodes."""
     nodes = []
     for server in node_string.split(','):
         (ip, port) = server.split(':')
@@ -902,15 +933,17 @@ def split_nodes(node_string):
 
 
 def csv_list(listtext, sep1=', ', sep2=', and '):
-        return (len(listtext) > 1
-        and ("%s%s%s" % (sep1.join(listtext[:-1]), sep2, listtext[-1]))
-        or listtext[0])
+    return (
+        len(listtext) > 1 and (
+            "%s%s%s" % (sep1.join(listtext[:-1]), sep2, listtext[-1]))
+        or listtext[0]
+    )
 
 
 def print_list2(fields, rows, batchmode=False, delim='|'):
     if len(rows) > 0:
         if batchmode:
-            print delim.join(fields)
+            print(delim.join(fields))
             for row in rows:
                 line = ''
                 for col in row:
@@ -920,7 +953,7 @@ def print_list2(fields, rows, batchmode=False, delim='|'):
                         line = line + str(col) + delim
                     else:
                         line = line + repr(col) + delim
-                print line
+                print(line)
         else:
             pt = prettytable.PrettyTable(fields)
             pt.aligns = ['l' for f in fields]
@@ -929,7 +962,7 @@ def print_list2(fields, rows, batchmode=False, delim='|'):
                     pt.add_row(r)
                 else:
                     pt.add_row([r])
-            print pt.get_string()
+            print(pt.get_string())
 
 
 def print_list(objs, fields, formatters={}):
@@ -945,18 +978,18 @@ def print_list(objs, fields, formatters={}):
                 row.append(getattr(o, field.lower().replace(' ', '_'), ''))
         pt.add_row(row)
 
-    print pt.get_string(sortby=fields[0])
+    print(pt.get_string(sortby=fields[0]))
 
 
 def print_dict(d):
     pt = prettytable.PrettyTable(['Property', 'Value'], caching=False)
     pt.aligns = ['l', 'l']
     [pt.add_row(list(r)) for r in d.iteritems()]
-    print pt.get_string(sortby='Property')
+    print(pt.get_string(sortby='Property'))
 
 if __name__ == "__main__":
     try:
         CloudloadbalancersShell().main(sys.argv[1:])
-    except CommandError, e:
-        print >> sys.stderr, e
+    except CommandError as e:
+        print(e, file=sys.stderr)
         sys.exit(1)
