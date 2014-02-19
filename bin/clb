@@ -194,7 +194,7 @@ class CloudloadbalancersShell(object):
                                                               'regionurl')
                 """
                 Normalize region name so we can detect when it is
-                different from the one implied in the cached 
+                different from the one implied in the cached
                 region_account_url.
                 """
                 if region.lower() == 'london':
@@ -359,6 +359,7 @@ class CloudloadbalancersShell(object):
         rows.append(['Port', lb.port])
         rows.append(['Protocol', lb.protocol])
         rows.append(['Algorithm', lb.algorithm])
+        rows.append(['Timeout', lb.timeout])
         for i in range(len(lb.virtualIps)):
             ip = lb.virtualIps[i]
             vstr = '%s (%s)' % (ip.address, ip.type)
@@ -519,6 +520,15 @@ class CloudloadbalancersShell(object):
         """Change the port number of an existing load balancer."""
         lb = self.findlb(args.loadbalancer)
         lb.port = int(args.port)
+        lb.update()
+
+    @arg('loadbalancer', metavar='<loadbalancer>',
+         help='Name or ID of load balancer.')
+    @arg('timeout', metavar='<timeout>', help="Timeout (in seconds).")
+    def do_change_timeout(self, args):
+        """Change the timeout of an existing load balancer. Max allowed is 120 seconds."""
+        lb = self.findlb(args.loadbalancer)
+        lb.timeout = int(args.timeout)
         lb.update()
 
     @arg('loadbalancer', metavar='<loadbalancer>',
