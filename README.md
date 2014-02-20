@@ -1,47 +1,59 @@
-==================================================================
- Command-line tool for Rackspace Load Balancers
-==================================================================
+# Command-line tool for Rackspace Load Balancers
 
-:Homepage:  https://github.com/calebgroom/clb
-:Credits:   Copyright 2011 Caleb Groom <caleb@calebgroom.com>
-:Licence:   BSD
-:Build Status: .. image:: https://secure.travis-ci.org/calebgroom/clb.png?branch=master
+<table>
+    <tr>
+        <td>Source</td><td>https://github.com/calebgroom/clb</td>
+    </tr>
+    <tr>
+        <td>Credits</td><td>Copyright 2011 Caleb Groom <caleb@calebgroom.com></td>
+    </tr>
+    <tr>
+        <td>License</td><td>MIT</td>
+    </tr>
+    <tr>
+        <td>Build Status</td><td>[![Build Status](https://travis-ci.org/calebgroom/clb.png?branch=master)](https://travis-ci.org/calebgroom/clb)</td>
+    </tr>
+</table>
 
-Install
-====
 
-To install clb from source::
+## Install
 
+To install clb from source:
+
+```
   $ git clone git://github.com/calebgroom/clb.git
   $ cd clb
-  $ sudo python setup.py install
+  $ python setup.py install
+```
 
-History
-=====
+## History
 
-clb is based on the shell.py script from jacobian's python-cloudservers project
-(https://github.com/jacobian/python-cloudservers) and uses the python-cloudlb
-library (https://github.com/rackspace/python-cloudlb).
 
-Credentials
-=====
 
-Rackspace Cloud credentials can be specified on the command line or stored in your user's environment.  Your username, password, and region are required.  These two sets of commands are equivalent::
+clb is based on the shell.py script from [jacobian's python-cloudservers project](
+https://github.com/jacobian/python-cloudservers) and uses the [python-cloudlb
+library](https://github.com/rackspace/python-cloudlb), which is no longer maintained. clb should begin to leverage [pyrax](https://github.com/rackspace/pyrax) over time.
 
+## Credentials
+
+Rackspace Cloud credentials can be specified on the command line or stored in your user's environment.  Your username, password, and region are required.  These two sets of commands are equivalent:
+
+```
  $ export CLOUD_LOADBALANCERS_USERNAME='myusername'
  $ export CLOUD_LOADBALANCERS_API_KEY='abcdefg'
  $ export CLOUD_LOADBALANCERS_REGION='chicago'
  $ clb list
 
  $ clb --username myusername --apikey abcdefg --region chicago list
+```
 
 The following examples assume the credentials are stored in your user's environment.
 
-Output
-=====
+## Output
 
-Output is formatted for visual display::
+Output is formatted for visual display:
 
+```
   $ clb list
   +----------------+------+------+----------+-------------+-------+--------------------+
   |      Name      |  ID  | Port | Protocol |  Algorithm  | Nodes |        IPs         |
@@ -50,40 +62,51 @@ Output is formatted for visual display::
   | lb-node-csv    | 7362 | 80   | HTTP     | RANDOM      | 2     | IPV4/10.183.253.16 |
   | publiclb       | 8738 | 21   | HTTP     | ROUND_ROBIN | 2     | IPV4/50.56.4.210   |
   +----------------+------+------+----------+-------------+-------+--------------------+
+```
 
-The optional argument for batch mode will create parsable output::
+The optional argument for batch mode will create parsable output:
 
+```
   $ clb --batch list
   Name,ID,Port,Protocol,Algorithm,Nodes,IPs
   lb-with-nodes2,1713,80,HTTP,ROUND_ROBIN,3,IPV4/10.183.252.96,
   lb-node-csv,7362,80,HTTP,RANDOM,2,IPV4/10.183.253.16,
   publiclb,8738,21,HTTP,ROUND_ROBIN,2,IPV4/50.56.4.210,
+```
 
-The field delimiter can be overwritten as well::
+The field delimiter can be overwritten as well:
 
+```
   $ clb --batch --delimiter='|' list
   Name|ID|Port|Protocol|Algorithm|Nodes|IPs
   lb-with-nodes2|1713|80|HTTP|ROUND_ROBIN|3|IPV4/10.183.252.96|
   lb-node-csv|7362|80|HTTP|RANDOM|2|IPV4/10.183.253.16|
   publiclb|8738|21|HTTP|ROUND_ROBIN|2|IPV4/50.56.4.210|
+```
 
-Usage
-=====
+## Usage
 
-Create a load balancer with two nodes behind a public IP::
+Create a load balancer with two nodes behind a public IP:
 
+```
   $ clb create mylb 80 HTTP '10.1.1.1:80,10.1.1.2:80' public
+```
 
-Create a load balancer with three nodes behind an internal Rackspace ServiceNet IP::
+Create a load balancer with three nodes behind an internal Rackspace ServiceNet IP:
 
+```
   $ clb create mylb 80 HTTP '10.1.1.1:80,10.1.1.2:80,10.1.1.3:80' servicenet
+```
 
-Create a load balancer with two nodes by sharing a VIP (id 1234) from an existing load balancer::
+Create a load balancer with two nodes by sharing a VIP (id 1234) from an existing load balancer:
 
+```
   $ clb create mylb 80 HTTP '10.1.1.1:80,10.1.1.2:80,10.1.1.3:80' 1234
+```
 
-List load balancers::
+List load balancers:
 
+```
   $ clb list
   +----------------+------+------+----------+-------------+-------+--------------------+
   |      Name      |  ID  | Port | Protocol |  Algorithm  | Nodes |        IPs         |
@@ -92,9 +115,11 @@ List load balancers::
   | lb-node-csv    | 7362 | 80   | HTTP     | RANDOM      | 2     | IPV4/10.183.253.16 |
   | lb-share       | 7364 | 81   | HTTP     | RANDOM      | 5     | IPV4/10.183.253.16 |
   +----------------+------+------+----------+-------------+-------+--------------------+
+```
 
-List load balancer details::
+List load balancer details:
 
+```
   $ clb show mylb
   +------------------------+----------------------------------+
   |        Field           |              Value               |
@@ -120,14 +145,18 @@ List load balancer details::
   | Created                | 2011-03-28 15:50:56              |
   | Updated                | 2011-03-28 21:15:07              |
   +---------------------+----------------------------------+
+```
 
-Show HTML error page::
+Show HTML error page:
 
+```
   $ clb show-errorpage mylb
   <html><h1>oh noes!</h1></html>
+```
 
-List load balancer usage::
+List load balancer usage:
 
+```
   $ clb show-stats mylb
   +-------------------+-------+
   |      Property     | Value |
@@ -139,9 +168,11 @@ List load balancer usage::
   | keepAliveTimedOut | 0     |
   | maxConn           | 0     |
   +-------------------+-------+
+```
 
-List load balancer usage::
+List load balancer usage:
 
+```
   $ clb show-usage mylb
   +--------------------------+---------------------+
   |          Field           |        Value        |
@@ -152,9 +183,11 @@ List load balancer usage::
   | Incoming Tranfer (bytes) | 7658                |
   | Outgoing Tranfer (bytes) | 0                   |
   +--------------------------+---------------------+
+```
 
-List all load balancer usage records::
+List all load balancer usage records:
 
+```
  $ clb show-all-usage mylb
  +-----------------------+---------------------+
  |        Property       |        Value        |
@@ -181,30 +214,42 @@ List all load balancer usage records::
  | outgoingTransfer      | 0                   |
  | startTime             | 2011-03-29 05:03:44 |
  +-----------------------+---------------------+
+```
 
-Delete load balancer::
+Delete load balancer:
 
+```
  $ clb delete mylb
+```
 
-Rename a load balancer::
+Rename a load balancer:
 
+```
  $ clb rename mylb my_new_name
+```
 
-Change the port of a load balancer::
+Change the port of a load balancer:
 
+```
  $ clb change-port mylb 81
+```
 
-Change the protocol of a load balancer::
+Change the protocol of a load balancer:
 
+```
  $ clb change-protocol mylb FTP
+```
 
 Change the timeout of a load balancer. The default value is 30 seconds. The
-maximum value that you can supply is 120 seconds.::
+maximum value that you can supply is 120 seconds:
 
+```
  $ clb change-timeout mylb 60
+```
 
-Change the algorithm of a load balancer.  Specify the full algorithm name or the abbreviation.::
+Change the algorithm of a load balancer.  Specify the full algorithm name or the abbreviation.
 
+```
  $ clb change-algorithm wlc
  $ clb change-algorithm WEIGHTED_LEAST_CONNECTIONS
  $ clb change-algorithm random
@@ -222,40 +267,56 @@ Change the algorithm of a load balancer.  Specify the full algorithm name or the
 +--------------+----------------------------+
 | wrr          | WEIGHTED_ROUND_ROBIN       |
 +--------------+----------------------------+
+```
 
 Change the HTML error page that is displayed when no nodes are available.
 This only is used for HTTP protocols.  If the protocol of a load balancer is
-changed to a non-HTTP protocol, the default error page will be restored.::
+changed to a non-HTTP protocol, the default error page will be restored.
 
+```
   $ clb change-errorpage mylb '<html><h1>oh noes!</h1></html>'
+```
 
-Add nodes to a load balancer::
+Add nodes to a load balancer:
 
+```
  $ clb add-nodes mylb '10.8.8.8:8080,10.9.9.9:8080'
+```
 
-Remove nodes from a load balancer::
+Remove nodes from a load balancer:
 
+```
  $ clb remove-nodes mylb '10.8.8.8:8080,10.9.9.9:8080'
+```
 
-Enable nodes on the load balancer::
+Enable nodes on the load balancer:
 
+```
  $ clb enable-nodes mylb '10.8.8.8:8080,10.9.9.9:8080'
+```
 
-Disable nodes on the load balancer::
+Disable nodes on the load balancer:
 
+```
  $ clb disable-nodes mylb '10.8.8.8:8080,10.9.9.9:8080'
+```
 
-Set the active health check monitor to TCP connect::
+Set the active health check monitor to TCP connect:
 
+```
  $ clb set-monitor-connect mylb 30 5 3
+```
 
-Set the active health check monitor for HTTP(S) transactions. Regular expressions are used for the body and the HTTP status code. The status keyword 'standard' represents '^[234][0-9][0-9]$'.   ::
+Set the active health check monitor for HTTP(S) transactions. Regular expressions are used for the body and the HTTP status code. The status keyword 'standard' represents '^[234][0-9][0-9]$'.
 
+```
  $ clb set-monitor-http mylb 30 10 5 '/test.php' standard 'my content'
  $ clb set-monitor-https mylb 30 10 5 '/test.php' '^[234][0-9][0-9]$' 'my content'
+```
 
-Display the current health check monitor::
+Display the current health check monitor:
 
+```
  $ clb show-monitor share
  +----------+---------+
  |  Field   |  Value  |
@@ -265,25 +326,35 @@ Display the current health check monitor::
  | Timeout  | 5       |
  | Attempts | 3       |
  +----------+---------+
+```
 
-Create an access control list that denies traffic::
+Create an access control list that denies traffic:
 
+```
  $ clb add-acls mylb deny 192.168.0.0/16
+```
 
-Create an access control list that allows traffic::
+Create an access control list that allows traffic:
 
+```
  $ clb add-acls mylb allow 50.40.30.10
+```
 
-Remove two access control lists by specifying a comma-delimited list of ACL ids::
+Remove two access control lists by specifying a comma-delimited list of ACL ids:
 
+```
  $ clb remove-acls mylb 1234,5678
+```
 
-Remove all access control lists::
+Remove all access control lists:
 
+```
  $ clb clear-acls mylb
+```
 
-List all supported load balancer algorithms::
+List all supported load balancer algorithms:
 
+```
  $ clb list-algorithms
  +----------------------------+
  |         Algorithms         |
@@ -294,9 +365,11 @@ List all supported load balancer algorithms::
  | WEIGHTED_LEAST_CONNECTIONS |
  | WEIGHTED_ROUND_ROBIN       |
  +----------------------------+
+```
 
-List all supported protocols::
+List all supported protocols:
 
+```
  $ clb list-protocols
  +-----------+
  | Protocols |
@@ -312,15 +385,4 @@ List all supported protocols::
  | POP3S     |
  | SMTP      |
  +-----------+
-
-LICENSE
-=======
-
-See LICENSE for license information.
-
-Author
-======
-
-Caleb Groom <caleb@calebgroom.com>
-
-
+```
