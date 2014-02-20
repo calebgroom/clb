@@ -10,11 +10,9 @@
     <tr>
         <td>License</td><td>MIT</td>
     </tr>
-    <tr>
-        <td>Build Status</td><td>[![Build Status](https://travis-ci.org/calebgroom/clb.png?branch=master)](https://travis-ci.org/calebgroom/clb)</td>
-    </tr>
 </table>
 
+[![Build Status](https://travis-ci.org/calebgroom/clb.png?branch=master)](https://travis-ci.org/calebgroom/clb)
 
 ## Install
 
