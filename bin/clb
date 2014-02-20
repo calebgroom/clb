@@ -42,7 +42,7 @@ def friendly_time(dt, past_="ago", future_="from now", default="just now"):
     Taken from http://flask.pocoo.org/snippets/33/
     """
 
-    now = datetime.utcnow()
+    now = datetime.datetime.utcnow()
     dt = dt.replace(tzinfo=None)
     if now > dt:
         diff = now - dt
@@ -113,15 +113,13 @@ class CloudloadbalancersShell(object):
         self.parser.add_argument(
             '--username',
             default=env('CLOUD_LOADBALANCERS_USERNAME'),
-            help='Defaults to env[CLOUD_LOADBALANCERS_USERNAME] or '
-                 'env[CLOUD_SERVERS_USERNAME].'
+            help='Defaults to env[CLOUD_LOADBALANCERS_USERNAME]'
         )
 
         self.parser.add_argument(
             '--apikey',
             default=env('CLOUD_LOADBALANCERS_API_KEY'),
-            help='Defaults to env[CLOUD_LOADBALANCERS_API_KEY] or '
-                 'env[CLOUD_SERVERS_API_KEY].'
+            help='Defaults to env[CLOUD_LOADBALANCERS_API_KEY]'
         )
 
         self.parser.add_argument(
@@ -176,16 +174,16 @@ class CloudloadbalancersShell(object):
 
         if not user:
             raise CommandError("You must provide a username, either via "
-                               "--username or via env[CLOUD_SERVERS_USERNAME]")
+                               "--username or via "
+                               "env[CLOUD_LOADBALANCERS_USERNAME]")
         if not apikey:
             raise CommandError("You must provide an API key, either via "
-                               "--apikey or via env[CLOUD_SERVERS_API_KEY]")
-
+                               "--apikey or via "
+                               "env[CLOUD_LOADBALANCERS_API_KEY]")
         if not region:
-            raise CommandError(
-                'You must provide a region location, either via --region or '
-                'via env[CLOUD_LOADBALANCERS_REGION]'
-            )
+            raise CommandError("You must provide a region, either via "
+                               "--region or via "
+                               "via env[CLOUD_LOADBALANCERS_REGION]")
 
         self.clb = self._api_class(user, apikey, region)
 
@@ -196,8 +194,8 @@ class CloudloadbalancersShell(object):
         if os.path.exists(configfilename):
             conf.read(configfilename)
             ts = conf.get('connection', 'timestamp')
-            then = datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
-            now = datetime.now()
+            then = datetime.datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
+            now = datetime.datetime.now()
             duration = now - then
             if duration.days < 1 and user == conf.get('connection',
                                                       'username'):
@@ -257,7 +255,7 @@ class CloudloadbalancersShell(object):
             configwriter.set('connection', 'regionurl',
                              self.clb.client.region_account_url)
             configwriter.set('connection', 'timestamp',
-                             datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                             datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
             configwriter.write(configfile)
             os.chmod(configfilename, 0o600)
 
@@ -316,7 +314,7 @@ class CloudloadbalancersShell(object):
         """Create new load balancer."""
         nodes = split_nodes(args.nodes)
 
-        if not args.vip in ["public", "servicenet"]:
+        if not args.vip.lower() in ["public", "servicenet"]:
             vip = cloudlb.VirtualIP(id=int(args.vip))
         else:
             vip = cloudlb.VirtualIP(type=args.vip.upper())
@@ -337,30 +335,45 @@ class CloudloadbalancersShell(object):
 
     def do_list(self, args):
         """List active load balancers."""
-        fields = ['ID', 'Name', 'Age', 'Port', 'Protocol', 'Algorithm',
-                  'Nodes', 'IPs']
+        fields = ['ID', 'Name', 'Status', 'Age', 'Port', 'Protocol',
+                  'Algorithm', 'Nodes', 'IPs']
         rows = []
         lbs = self.clb.loadbalancers.list()
         lbs.sort(key=lambda lb: lb.id)
         for lb in lbs:
             ips = []
             if hasattr(lb, 'virtualIps'):
+                public = []
+                service = []
+                unknown = []
                 for ip in lb.virtualIps:
-                    ips.append("%s/%s" % (ip.ipVersion, ip.address))
+                    if ip.type == "SERVICENET":
+                        service.append(ip.address)
+                    elif ip.type == "PUBLIC":
+                        public.append(ip.address)
+                    else:
+                        unknown.append(ip.address)
+                if public:
+                    ips.append("public=%s" % ', '.join(public))
+                if service:
+                    ips.append("servicenet=%s" % ', '.join(service))
+                if unknown:
+                    ips.append("other=%s" % ', '.join(unknown))
                 rows.append(
                     [
                         lb.id,
                         lb.name,
+                        lb.status,
                         friendly_time(lb.created, past_=''),
                         lb.port,
                         lb.protocol,
                         lb.algorithm,
                         0 if not hasattr(lb, 'nodes') else len(lb.nodes),
-                        csv_list(ips)
+                        '; '.join(ips)
                     ]
                 )
             else:
-                rows.append([lb.id, lb.name,
+                rows.append([lb.id, lb.name, lb.status,
                              friendly_time(lb.created, past_=''),
                              lb.port, lb.protocol, lb.algorithm,
                              len(lb.nodes), ''])
@@ -482,8 +495,8 @@ class CloudloadbalancersShell(object):
         for u in usage:
             v = u['vipType']
             if v not in output.keys():
-                output[v] = {'startTime': datetime.now(),
-                             'endTime': datetime(1970, 1, 1),
+                output[v] = {'startTime': datetime.datetime.now(),
+                             'endTime': datetime.datetime(1970, 1, 1),
                              'outgoingTransfer': 0,
                              'incomingTransfer': 0}
 
@@ -949,14 +962,14 @@ def print_list2(fields, rows, batchmode=False, delim='|'):
                 for col in row:
                     if type(col) in [types.UnicodeType, types.StringType]:
                         line = line + '%s' % col + delim
-                    elif type(col) is datetime:
+                    elif type(col) is datetime.datetime:
                         line = line + str(col) + delim
                     else:
                         line = line + repr(col) + delim
                 print(line)
         else:
             pt = prettytable.PrettyTable(fields)
-            pt.aligns = ['l' for f in fields]
+            pt.align = "l"
             for r in rows:
                 if isinstance(r, list):
                     pt.add_row(r)
@@ -967,7 +980,7 @@ def print_list2(fields, rows, batchmode=False, delim='|'):
 
 def print_list(objs, fields, formatters={}):
     pt = prettytable.PrettyTable([f for f in fields], caching=False)
-    pt.aligns = ['l' for f in fields]
+    pt.align = "l"
 
     for o in objs:
         row = []
@@ -983,7 +996,7 @@ def print_list(objs, fields, formatters={}):
 
 def print_dict(d):
     pt = prettytable.PrettyTable(['Property', 'Value'], caching=False)
-    pt.aligns = ['l', 'l']
+    pt.align = "l"
     [pt.add_row(list(r)) for r in d.iteritems()]
     print(pt.get_string(sortby='Property'))
 
