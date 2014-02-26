@@ -11,6 +11,7 @@ import sys
 import time
 import types
 
+import ago
 import cloudlb
 import cloudlb.errors
 import ConfigParser
@@ -33,43 +34,6 @@ class CommandError(Exception):
 
 def env(e):
     return os.environ.get(e, '')
-
-
-def friendly_time(dt, past_="ago", future_="from now", default="just now"):
-    """Returns string representing "time since" or "time until".
-
-    e.g. 3 days ago, 5 hours from now etc.
-    Taken from http://flask.pocoo.org/snippets/33/
-    """
-
-    now = datetime.datetime.utcnow()
-    dt = dt.replace(tzinfo=None)
-    if now > dt:
-        diff = now - dt
-        dt_is_past = True
-    else:
-        diff = dt - now
-        dt_is_past = False
-
-    periods = (
-        (diff.days / 365, "year", "years"),
-        (diff.days / 30, "month", "months"),
-        (diff.days / 7, "week", "weeks"),
-        (diff.days, "day", "days"),
-        (diff.seconds / 3600, "hour", "hours"),
-        (diff.seconds / 60, "minute", "minutes"),
-        (diff.seconds, "second", "seconds"),
-    )
-
-    for period, singular, plural in periods:
-        if period:
-            return "%d %s %s" % (
-                period,
-                singular if period == 1 else plural,
-                past_ if dt_is_past else future_
-            )
-
-    return default
 
 
 class CloudloadbalancersShell(object):
@@ -254,8 +218,11 @@ class CloudloadbalancersShell(object):
                              self.clb.client.auth_token)
             configwriter.set('connection', 'regionurl',
                              self.clb.client.region_account_url)
-            configwriter.set('connection', 'timestamp',
-                             datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            configwriter.set(
+                'connection',
+                'timestamp',
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            )
             configwriter.write(configfile)
             os.chmod(configfilename, 0o600)
 
@@ -364,7 +331,7 @@ class CloudloadbalancersShell(object):
                         lb.id,
                         lb.name,
                         lb.status,
-                        friendly_time(lb.created, past_=''),
+                        ago.human(lb.created),
                         lb.port,
                         lb.protocol,
                         lb.algorithm,
@@ -374,7 +341,7 @@ class CloudloadbalancersShell(object):
                 )
             else:
                 rows.append([lb.id, lb.name, lb.status,
-                             friendly_time(lb.created, past_=''),
+                             ago.human(lb.created),
                              lb.port, lb.protocol, lb.algorithm,
                              len(lb.nodes), ''])
             # Throttle requests if there are more than 5 LBs
@@ -464,9 +431,9 @@ class CloudloadbalancersShell(object):
 
         rows.append(['Connection Logging', lb.connection_logging().get()])
         rows.append(['Created', '%s (%s)' % (lb.created,
-                                             friendly_time(lb.created))])
+                                             ago.human(lb.created))])
         rows.append(['Updated', '%s (%s)' % (lb.updated,
-                                             friendly_time(lb.updated))])
+                                             ago.human(lb.updated))])
 
         print_list2(fields, rows, args.batch, args.delimiter)
 
